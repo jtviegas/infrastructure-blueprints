@@ -37,6 +37,34 @@ export const createCsr = () => {
   cer.validity.notAfter = after;
   cer.setSubject(attributes)
   cer.setIssuer(attributes)
+  cer.setExtensions([{
+    name: 'basicConstraints',
+    cA: true
+  }, {
+    name: 'keyUsage',
+    keyCertSign: true,
+    digitalSignature: true,
+    nonRepudiation: true,
+    keyEncipherment: true,
+    dataEncipherment: true
+  }, {
+    name: 'extKeyUsage',
+    serverAuth: true,
+    clientAuth: true,
+    codeSigning: true,
+    emailProtection: true,
+    timeStamping: true
+  }, {
+    name: 'nsCertType',
+    client: true,
+    server: true,
+    email: true,
+    objsign: true,
+    sslCA: true,
+    emailCA: true,
+    objCA: true
+  }]);
+
   cer.sign(privateKey)
   const cerPem = forge.pki.certificateToPem(cer);
   
