@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { CfnOutput, RemovalPolicy, Size } from 'aws-cdk-lib';
-import { CfnCertificateAuthority } from 'aws-cdk-lib/aws-acmpca';
+import { CfnCertificateAuthority, CfnPermission } from 'aws-cdk-lib/aws-acmpca';
 import { IpAddresses, Peer, Port, PrivateSubnet, PublicSubnet, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
@@ -148,6 +148,12 @@ export class InfrastructureStack extends cdk.Stack {
         // generationQualifier: 'DBG',
       },
       tags: cfnConfTags
+    });
+
+    const certificateAuthorityPermission = new CfnPermission(this, `${id}-certificateAuthorityPermission`, {
+      actions: ['IssueCertificate', 'GetCertificate', 'ListPermissions'],
+      certificateAuthorityArn: certificateAuthority.attrArn,
+      principal: 'acm.amazonaws.com',
     });
 
 
