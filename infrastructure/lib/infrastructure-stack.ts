@@ -127,7 +127,7 @@ export class InfrastructureStack extends cdk.Stack {
     // --- certificate authority ---
 
     const certificateAuthority = new CfnCertificateAuthority(this, `${id}-certificateAuthority`, {
-      type: 'SUBORDINATE',
+      type: 'ROOT',
       keyAlgorithm: 'RSA_2048',
       signingAlgorithm: 'SHA256WITHRSA',
       subject: {

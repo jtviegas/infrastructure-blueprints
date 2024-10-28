@@ -34,7 +34,7 @@ export const createCsr = () => {
   const after = new Date()
   after.setFullYear(today.getFullYear() + 1)
   cer.validity.notBefore = today;
-  cer.validity.notAfter = new Date(after);
+  cer.validity.notAfter = after;
   cer.setSubject(attributes)
   cer.setIssuer(attributes)
   cer.sign(privateKey)
