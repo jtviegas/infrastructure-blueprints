@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { CfnOutput, RemovalPolicy, SecretValue, Size } from 'aws-cdk-lib';
-import { CfnCertificate, CfnCertificateAuthority, CfnPermission } from 'aws-cdk-lib/aws-acmpca';
+import { CfnCertificate, CfnCertificateAuthority, CfnCertificateAuthorityActivation, CfnCertificateAuthorityActivationProps, CfnPermission } from 'aws-cdk-lib/aws-acmpca';
 import { IpAddresses, Peer, Port, PrivateSubnet, PublicSubnet, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
@@ -29,7 +29,7 @@ export interface SolutionProps extends cdk.StackProps {
   readonly domain: string;
   readonly appImage: string;
   readonly outputAppImageUri: string;
-  readonly outputCsrPkPemSecretName: string;
+  readonly outputCaPkPemSecretName: string;
   
 }
 
@@ -155,25 +155,31 @@ export class InfrastructureStack extends cdk.Stack {
       principal: 'acm.amazonaws.com',
     });
 
-    const secretCsrPkPem = createCsr();
-    new Secret(this, `${id}-secretCsrPkPem`, {
-      description: 'private key in pem format to issue certificates',
+    const csrPk = createCsr();
+    new Secret(this, `${id}-secretCaPkPem`, {
+      description: 'CA private key in pem format',
       encryptionKey: kmsKey,
       removalPolicy: RemovalPolicy.DESTROY,
-      secretName: `${parameterPrefix}/${props.outputCsrPkPemSecretName}`,
-      secretStringValue: SecretValue.unsafePlainText(secretCsrPkPem)
+      secretName: `${parameterPrefix}/${props.outputCaPkPemSecretName}`,
+      secretStringValue: SecretValue.unsafePlainText(csrPk.pk)
+    });
+
+    const cfnCertificateAuthorityActivation = new CfnCertificateAuthorityActivation(this, 'MyCfnCertificateAuthorityActivation', {
+      certificate: csrPk.pk,
+      certificateAuthorityArn: certificateAuthority.attrArn,
     });
 
 
-    const certificateApp = new CfnCertificate(this, `${id}-certificateApp`, {
+    const pkCA = new CfnCertificate(this, `${id}-pkCA`, {
       certificateAuthorityArn: certificateAuthority.attrArn,
-      certificateSigningRequest: secretCsrPkPem,
+      certificateSigningRequest: csrPk.csr,
       signingAlgorithm: 'SHA256WITHRSA',
       validity: {
         type: 'MONTHS',
         value: 12,
       }
     });
+    pkCA.node.addDependency(cfnCertificateAuthorityActivation)
 
 
 

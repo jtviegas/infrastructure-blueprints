@@ -19,5 +19,5 @@ export CN="jtviegas.com"
 export INFRA_STACK="${ORGANISATION}${DOMAIN}${SOLUTION}${ENVIRONMENT}Stack"
 export APP_IMAGE="${ORGANISATION}-${DOMAIN}-${SOLUTION}"
 export OUTPUT_APP_IMAGE_URI="AppImageUri"
-export OUTPUT_CSR_PK_PEM_SECRET_NAME="CsrPrivateKeyPem"
+export OUTPUT_CA_PK_PEM_SECRET_NAME="CaPrivateKeyPem"
 

@@ -34,8 +34,13 @@ export const createCsr = () => {
    * */ 
   const privateKeyPem = forge.pki.privateKeyToPem(privateKey);
 
-  console.log("[createCsr|out] => %o", csrPem.substring(0,3))
-  return csrPem;
+  const result = {
+    csr: csrPem,
+    pk: privateKeyPem
+  }
+
+  console.log("[createCsr|out] => %o", result)
+  return result;
 };
 
 const props: SolutionProps = {
@@ -51,7 +56,7 @@ const props: SolutionProps = {
   domain: process.env.DOMAIN!,
   appImage: process.env.APP_IMAGE!,
   outputAppImageUri: process.env.OUTPUT_APP_IMAGE_URI!,
-  outputCsrPkPemSecretName: process.env.OUTPUT_CSR_PK_PEM_SECRET_NAME!,
+  outputCaPkPemSecretName: process.env.OUTPUT_CA_PK_PEM_SECRET_NAME!,
 
 }
 
