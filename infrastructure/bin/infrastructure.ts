@@ -20,7 +20,7 @@ export const createCsr = () => {
     { name: "commonName", value: process.env.CN! },
     { name: "countryName", value: process.env.COUNTRY! },
     { name: "localityName", value: process.env.LOCAL! },
-    { name: "organizationName", value: process.env.ORGANISATION! },
+    { name: "organizationName", value: process.env.ORGANISATION! }
   ]
   csr.setSubject(attributes);
 
