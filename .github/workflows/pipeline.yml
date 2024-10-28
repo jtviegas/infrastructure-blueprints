@@ -1,0 +1,25 @@
+name: release build, test & publish
+
+on:
+  push:
+    branches: [ main, release_*, feature_* ]
+
+jobs:
+  test_deploy:
+    name: test functions, deploy infra
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - run: ./helper.sh infra reqs
+    - run: ./helper.sh infra deps
+    - run: ./helper.sh infra on
+      env:
+        ROOT_ONE_PSWD: ${{ secrets.ROOT_ONE_PSWD }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+
+
+    

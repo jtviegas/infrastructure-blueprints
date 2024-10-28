@@ -88,8 +88,36 @@ update_bashutils(){
 # =======>    MAIN SECTION    =======>
 
 # ---------- LOCAL CONSTANTS ----------
+export INFRA_DIR="${this_folder}/infrastructure"
+export APP_DIR="${this_folder}/app"
 
 # ---------- LOCAL FUNCTIONS ----------
+global_infra_reqs(){
+  info "[global_infra_reqs|in]"
+
+  info "[global_infra_reqs] installing: typescript@${TYPESCRIPT_VERSION} and  aws-cdk@${CDK_VERSION}"
+  npm install -g "typescript@${TYPESCRIPT_VERSION}" "aws-cdk@${CDK_VERSION}" 
+  result="$?"
+
+  [ "$result" -ne "0" ] && err "[global_infra_reqs|out]  => ${result}" && exit 1
+  info "[global_infra_reqs|out] => ${result}"
+}
+
+npm_deps(){
+  info "[npm_deps|in] ({$1})"
+
+  [ -z "$1" ] && usage
+  _dir="$1"
+  _pwd=`pwd`
+  cd "$_dir"
+
+  npm install
+
+  result="$?"
+  cd "$_pwd"
+  [ "$result" -ne "0" ] && err "[npm_deps|out]  => ${result}" && exit 1
+  info "[npm_deps|out] => ${result}"
+}
 
 # -------------------------------------
 usage() {
@@ -98,6 +126,7 @@ usage() {
   $(basename $0) { option }
       options:
       - commands: lists handy commands we use all the time
+      - global_infra_reqs: install requirements gloabally required in the ssytem for IaC
       - bashutils {package, update}
         - updates the include '.bashutils' file
         - packages bashutils for new releaae
@@ -118,6 +147,28 @@ case "$1" in
         ;;
       update)
         update_bashutils
+        ;;
+      *)
+        usage
+        ;;
+    esac
+    ;;
+    infra)
+    case "$2" in
+      reqs)
+        global_infra_reqs
+        ;;
+      deps)
+        npm_deps "$INFRA_DIR"
+        ;;
+      on)
+        cdk_infra on "$INFRA_DIR"
+        ;;
+      off)
+        cdk_infra off "$INFRA_DIR"
+        ;;
+      *)
+        usage
         ;;
     esac
     ;;
