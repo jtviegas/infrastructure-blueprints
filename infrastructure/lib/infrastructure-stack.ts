@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { CfnOutput, RemovalPolicy, Size } from 'aws-cdk-lib';
+import { CfnCertificateAuthority } from 'aws-cdk-lib/aws-acmpca';
 import { IpAddresses, Peer, Port, PrivateSubnet, PublicSubnet, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
@@ -43,6 +44,11 @@ export class InfrastructureStack extends cdk.Stack {
     const kmsKey = new Key(this, `${id}-kmsKey`);
     const logGroup = new LogGroup(this, `${id}-logGroup`, { logGroupName: `${namePrefix}-logGroup`, removalPolicy: RemovalPolicy.DESTROY });
     const teamAccount = new AccountPrincipal(props.env.account)
+
+    const cfnConfTags = []
+    for (const key in props.tags) {
+      cfnConfTags.push({key: key, value: props.tags[key]})
+    }
 
     // --- solution role ---
 
@@ -118,6 +124,32 @@ export class InfrastructureStack extends cdk.Stack {
     }).applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     new CfnOutput(this, props.outputAppImageUri, { value: containerImageApp.imageUri });
+
+    // --- certificate authority ---
+
+    const certificateAuthority = new CfnCertificateAuthority(this, `${id}-certificateAuthority`, {
+      type: 'ROOT',
+      keyAlgorithm: 'RSA_2048',
+      signingAlgorithm: 'SHA256WITHRSA',
+      subject: {
+        commonName: 'jtviegas.com',
+        country: 'DK',
+        organization: 'tgedr',
+        organizationalUnit: 'it',
+        // distinguishedNameQualifier: 'string',
+        // state: 'string',
+        // serialNumber: 'string',
+        locality: 'Copenhagen',
+        // title: 'string',
+        // surname: 'string',
+        // givenName: 'string',
+        // initials: 'DG',
+        // pseudonym: 'string',
+        // generationQualifier: 'DBG',
+      },
+      tags: cfnConfTags
+    });
+
 
     // --- fargate service ---
 

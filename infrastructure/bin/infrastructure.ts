@@ -10,6 +10,12 @@ const environment_ctx = (app.node.tryGetContext("environment"))[(process.env.ENV
 
 const props: SolutionProps = {
   env: environment_ctx,
+  tags: {
+    organisation: process.env.ORGANISATION!,
+    domain: process.env.DOMAIN!,
+    solution: process.env.SOLUTION!,
+    environment: environment_ctx["name"]
+  },
   solution: process.env.SOLUTION!,
   organisation: process.env.ORGANISATION!,
   domain: process.env.DOMAIN!,
