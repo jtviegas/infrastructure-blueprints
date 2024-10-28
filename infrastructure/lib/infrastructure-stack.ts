@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { CfnOutput, RemovalPolicy, Size } from 'aws-cdk-lib';
-import { IpAddresses, Peer, Port, PrivateSubnet, PublicSubnet, SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { IpAddresses, Peer, Port, PrivateSubnet, PublicSubnet, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
@@ -87,18 +87,17 @@ export class InfrastructureStack extends cdk.Stack {
     // --- network ---
 
     const vpc = new Vpc(this, `${id}-vpc`, {
-      ipAddresses: IpAddresses.cidr(props.vpcCidr),
-      vpcName: `${namePrefix}-vpc`
-    });
-    const privateSubnet = new PrivateSubnet(this, `${id}-privateSubnet`, {
-      availabilityZone: props.vpcPrivateSubnetAz,
-      cidrBlock: props.vpcPrivateSubnetCidr,
-      vpcId: vpc.vpcId,
-    });
-    const publicSubnet = new PublicSubnet(this, `${id}-publicSubnet`, {
-      availabilityZone: props.vpcPublicSubnetAz,
-      cidrBlock: props.vpcPublicSubnetCidr,
-      vpcId: vpc.vpcId,
+      vpcName: `${namePrefix}-vpc`,
+      subnetConfiguration: [
+        {
+          name: `${namePrefix}-privateSubnet`,
+          subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+        },
+        {
+          name: `${namePrefix}-publicSubnet`,
+          subnetType: SubnetType.PUBLIC,
+        }
+      ]
     });
 
     // --- container image ---
