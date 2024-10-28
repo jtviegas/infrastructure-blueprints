@@ -119,6 +119,22 @@ npm_deps(){
   info "[npm_deps|out] => ${result}"
 }
 
+generate_certificate_assets(){
+  info "[generate_certificate_assets|in] ({$1})"
+
+  [ -z "$1" ] && usage
+  _dir="$1"
+  _pwd=`pwd`
+  cd "$_dir"
+
+  npm install
+
+  result="$?"
+  cd "$_pwd"
+  [ "$result" -ne "0" ] && err "[npm_deps|out]  => ${result}" && exit 1
+  info "[generate_certificate_assets|out] => ${result}"
+}
+
 # -------------------------------------
 usage() {
   cat <<EOM

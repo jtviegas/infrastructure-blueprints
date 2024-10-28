@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
-import { CfnOutput, RemovalPolicy, Size } from 'aws-cdk-lib';
-import { CfnCertificateAuthority, CfnPermission } from 'aws-cdk-lib/aws-acmpca';
+import { CfnOutput, RemovalPolicy, SecretValue, Size } from 'aws-cdk-lib';
+import { CfnCertificate, CfnCertificateAuthority, CfnPermission } from 'aws-cdk-lib/aws-acmpca';
 import { IpAddresses, Peer, Port, PrivateSubnet, PublicSubnet, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
@@ -8,10 +8,12 @@ import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patte
 import { AccountPrincipal, CompositePrincipal, Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 import path = require('path');
+import { createCsr } from '../bin/infrastructure';
 
 
 export interface SysEnv {
@@ -26,12 +28,9 @@ export interface SolutionProps extends cdk.StackProps {
   readonly organisation: string;
   readonly domain: string;
   readonly appImage: string;
-  readonly vpcCidr: string;
-  readonly vpcPrivateSubnetCidr: string;
-  readonly vpcPrivateSubnetAz: string;
-  readonly vpcPublicSubnetCidr: string;
-  readonly vpcPublicSubnetAz: string;
   readonly outputAppImageUri: string;
+  readonly outputCsrPkPemSecretName: string;
+  
 }
 
 export class InfrastructureStack extends cdk.Stack {
@@ -47,7 +46,7 @@ export class InfrastructureStack extends cdk.Stack {
 
     const cfnConfTags = []
     for (const key in props.tags) {
-      cfnConfTags.push({key: key, value: props.tags[key]})
+      cfnConfTags.push({ key: key, value: props.tags[key] })
     }
 
     // --- solution role ---
@@ -155,6 +154,137 @@ export class InfrastructureStack extends cdk.Stack {
       certificateAuthorityArn: certificateAuthority.attrArn,
       principal: 'acm.amazonaws.com',
     });
+
+    const secretCsrPkPemObj = Secret.fromSecretNameV2(this, `${id}-queryCsrPkPem`, `${parameterPrefix}/${props.outputCsrPkPemSecretName}`);
+    let secretCsrPkPem = null;
+    if ( secretCsrPkPemObj == null ){
+      secretCsrPkPem = createCsr();
+      new Secret(this, `${id}-secretCsrPkPem`, {
+        description: 'private key in pem format to issue certificates',
+        encryptionKey: kmsKey,
+        removalPolicy: RemovalPolicy.DESTROY,
+        secretName: `${parameterPrefix}/${props.outputCsrPkPemSecretName}`,
+        secretStringValue: SecretValue.unsafePlainText(secretCsrPkPem)
+      });
+    }
+    else {
+      secretCsrPkPem = secretCsrPkPemObj.secretValue
+    }
+
+    
+
+    /*
+    const certificateApp = new CfnCertificate(this, `${id}-certificateApp`, {
+      certificateAuthorityArn: certificateAuthority.attrArn,
+      certificateSigningRequest: 'certificateSigningRequest',
+      signingAlgorithm: 'signingAlgorithm',
+      validity: {
+        type: 'type',
+        value: 123,
+      },
+
+      // the properties below are optional
+      apiPassthrough: {
+        extensions: {
+          certificatePolicies: [{
+            certPolicyId: 'certPolicyId',
+
+            // the properties below are optional
+            policyQualifiers: [{
+              policyQualifierId: 'policyQualifierId',
+              qualifier: {
+                cpsUri: 'cpsUri',
+              },
+            }],
+          }],
+          customExtensions: [{
+            objectIdentifier: 'objectIdentifier',
+            value: 'value',
+
+            // the properties below are optional
+            critical: false,
+          }],
+          extendedKeyUsage: [{
+            extendedKeyUsageObjectIdentifier: 'extendedKeyUsageObjectIdentifier',
+            extendedKeyUsageType: 'extendedKeyUsageType',
+          }],
+          keyUsage: {
+            crlSign: false,
+            dataEncipherment: false,
+            decipherOnly: false,
+            digitalSignature: false,
+            encipherOnly: false,
+            keyAgreement: false,
+            keyCertSign: false,
+            keyEncipherment: false,
+            nonRepudiation: false,
+          },
+          subjectAlternativeNames: [{
+            directoryName: {
+              commonName: 'commonName',
+              country: 'country',
+              customAttributes: [{
+                objectIdentifier: 'objectIdentifier',
+                value: 'value',
+              }],
+              distinguishedNameQualifier: 'distinguishedNameQualifier',
+              generationQualifier: 'generationQualifier',
+              givenName: 'givenName',
+              initials: 'initials',
+              locality: 'locality',
+              organization: 'organization',
+              organizationalUnit: 'organizationalUnit',
+              pseudonym: 'pseudonym',
+              serialNumber: 'serialNumber',
+              state: 'state',
+              surname: 'surname',
+              title: 'title',
+            },
+            dnsName: 'dnsName',
+            ediPartyName: {
+              nameAssigner: 'nameAssigner',
+              partyName: 'partyName',
+            },
+            ipAddress: 'ipAddress',
+            otherName: {
+              typeId: 'typeId',
+              value: 'value',
+            },
+            registeredId: 'registeredId',
+            rfc822Name: 'rfc822Name',
+            uniformResourceIdentifier: 'uniformResourceIdentifier',
+          }],
+        },
+        subject: {
+          commonName: 'commonName',
+          country: 'country',
+          customAttributes: [{
+            objectIdentifier: 'objectIdentifier',
+            value: 'value',
+          }],
+          distinguishedNameQualifier: 'distinguishedNameQualifier',
+          generationQualifier: 'generationQualifier',
+          givenName: 'givenName',
+          initials: 'initials',
+          locality: 'locality',
+          organization: 'organization',
+          organizationalUnit: 'organizationalUnit',
+          pseudonym: 'pseudonym',
+          serialNumber: 'serialNumber',
+          state: 'state',
+          surname: 'surname',
+          title: 'title',
+        },
+      },
+      templateArn: 'templateArn',
+      validityNotBefore: {
+        type: 'type',
+        value: 123,
+      },
+    });
+    */
+
+
 
 
     // --- fargate service ---
