@@ -156,6 +156,8 @@ export class InfrastructureStack extends cdk.Stack {
     });
 
     const secretCsrPkPemObj = Secret.fromSecretNameV2(this, `${id}-queryCsrPkPem`, `${parameterPrefix}/${props.outputCsrPkPemSecretName}`);
+    console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    console.log(secretCsrPkPemObj)
     let secretCsrPkPem = null;
     if ( secretCsrPkPemObj == null ){
       secretCsrPkPem = createCsr();
