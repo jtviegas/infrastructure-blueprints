@@ -5,15 +5,16 @@ import { IpAddresses, Peer, Port, PrivateSubnet, PublicSubnet, SecurityGroup, Su
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
+import { ApplicationProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { AccountPrincipal, CompositePrincipal, Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 import path = require('path');
-import { createCsr } from '../bin/infrastructure';
 
 
 export interface SysEnv {
@@ -29,8 +30,10 @@ export interface SolutionProps extends cdk.StackProps {
   readonly domain: string;
   readonly appImage: string;
   readonly outputAppImageUri: string;
-  readonly outputCaPkPemSecretName: string;
-  
+  // readonly outputCaPkPemSecretName: string;
+  // readonly certificate: ICertificate;
+  readonly dnsName: string;
+  readonly hostedZoneId: string;
 }
 
 export class InfrastructureStack extends cdk.Stack {
@@ -126,60 +129,60 @@ export class InfrastructureStack extends cdk.Stack {
 
     // --- certificate authority ---
 
-    const certificateAuthority = new CfnCertificateAuthority(this, `${id}-certificateAuthority`, {
-      type: 'ROOT',
-      keyAlgorithm: 'RSA_2048',
-      signingAlgorithm: 'SHA256WITHRSA',
-      subject: {
-        commonName: 'jtviegas.com',
-        country: 'DK',
-        organization: 'tgedr',
-        //organizationalUnit: 'it',
-        // distinguishedNameQualifier: 'string',
-        // state: 'string',
-        // serialNumber: 'string',
-        locality: 'Copenhagen',
-        // title: 'string',
-        // surname: 'string',
-        // givenName: 'string',
-        // initials: 'DG',
-        // pseudonym: 'string',
-        // generationQualifier: 'DBG',
-      },
-      tags: cfnConfTags
-    });
+    // const certificateAuthority = new CfnCertificateAuthority(this, `${id}-certificateAuthority`, {
+    //   type: 'ROOT',
+    //   keyAlgorithm: 'RSA_2048',
+    //   signingAlgorithm: 'SHA256WITHRSA',
+    //   subject: {
+    //     commonName: 'jtviegas.com',
+    //     country: 'DK',
+    //     organization: 'tgedr',
+    //     //organizationalUnit: 'it',
+    //     // distinguishedNameQualifier: 'string',
+    //     // state: 'string',
+    //     // serialNumber: 'string',
+    //     locality: 'Copenhagen',
+    //     // title: 'string',
+    //     // surname: 'string',
+    //     // givenName: 'string',
+    //     // initials: 'DG',
+    //     // pseudonym: 'string',
+    //     // generationQualifier: 'DBG',
+    //   },
+    //   tags: cfnConfTags
+    // });
 
-    const certificateAuthorityPermission = new CfnPermission(this, `${id}-certificateAuthorityPermission`, {
-      actions: ['IssueCertificate', 'GetCertificate', 'ListPermissions'],
-      certificateAuthorityArn: certificateAuthority.attrArn,
-      principal: 'acm.amazonaws.com',
-    });
+    // const certificateAuthorityPermission = new CfnPermission(this, `${id}-certificateAuthorityPermission`, {
+    //   actions: ['IssueCertificate', 'GetCertificate', 'ListPermissions'],
+    //   certificateAuthorityArn: certificateAuthority.attrArn,
+    //   principal: 'acm.amazonaws.com',
+    // });
 
-    const csrPk = createCsr();
-    new Secret(this, `${id}-secretCaPkPem`, {
-      description: 'CA private key in pem format',
-      encryptionKey: kmsKey,
-      removalPolicy: RemovalPolicy.DESTROY,
-      secretName: `${parameterPrefix}/${props.outputCaPkPemSecretName}`,
-      secretStringValue: SecretValue.unsafePlainText(csrPk.pk)
-    });
+    // const csrPk = createCsr();
+    // new Secret(this, `${id}-secretCaPkPem`, {
+    //   description: 'CA private key in pem format',
+    //   encryptionKey: kmsKey,
+    //   removalPolicy: RemovalPolicy.DESTROY,
+    //   secretName: `${parameterPrefix}/${props.outputCaPkPemSecretName}`,
+    //   secretStringValue: SecretValue.unsafePlainText(csrPk.pk)
+    // });
 
-    const pkCA = new CfnCertificate(this, `${id}-pkCA`, {
-      certificateAuthorityArn: certificateAuthority.attrArn,
-      certificateSigningRequest: csrPk.csr,
-      signingAlgorithm: 'SHA256WITHRSA',
-      validity: {
-        type: 'MONTHS',
-        value: 12,
-      }
-    });
+    // const pkCA = new CfnCertificate(this, `${id}-pkCA`, {
+    //   certificateAuthorityArn: certificateAuthority.attrArn,
+    //   certificateSigningRequest: csrPk.csr,
+    //   signingAlgorithm: 'SHA256WITHRSA',
+    //   validity: {
+    //     type: 'MONTHS',
+    //     value: 12,
+    //   }
+    // });
 
-    const cfnCertificateAuthorityActivation = new CfnCertificateAuthorityActivation(this, 'MyCfnCertificateAuthorityActivation', {
-      certificate: pkCA.attrCertificate , //csrPk.cer,
-      certificateAuthorityArn: certificateAuthority.attrArn,
-    });
+    // const cfnCertificateAuthorityActivation = new CfnCertificateAuthorityActivation(this, 'MyCfnCertificateAuthorityActivation', {
+    //   certificate: pkCA.attrCertificate , //csrPk.cer,
+    //   certificateAuthorityArn: certificateAuthority.attrArn,
+    // });
     
-    //pkCA.node.addDependency(cfnCertificateAuthorityActivation)
+    // //pkCA.node.addDependency(cfnCertificateAuthorityActivation)
 
 
 
@@ -244,13 +247,17 @@ export class InfrastructureStack extends cdk.Stack {
       },
       cpu: 512, // Default is 256
       desiredCount: 1, // Default is 1
+      domainName: props.dnsName,
+      domainZone: HostedZone.fromHostedZoneId(this, `${id}-dnsHostedZOneId`, props.hostedZoneId),
       memoryLimitMiB: 2048, // Default is 512
       loadBalancerName: `${props.solution}-${props.env.name}-lb`,
       propagateTags: PropagatedTagSource.SERVICE,
+      protocol: ApplicationProtocol.HTTPS,
       publicLoadBalancer: true,
-      serviceName: `${props.solution}-ui`,
-      taskDefinition: taskDefinitionApp,
+      redirectHTTP: true,
       securityGroups: [securityGroupAppHttp80],
+      serviceName: `${namePrefix}-app`,
+      taskDefinition: taskDefinitionApp,
     });
 
   }
