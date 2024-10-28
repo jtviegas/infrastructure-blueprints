@@ -30,6 +30,11 @@ export const createCsr = () => {
   let cer = forge.pki.createCertificate();
   console.log(cer)
   cer.publicKey = publicKey
+  const today = new Date()
+  const after = new Date()
+  after.setFullYear(today.getFullYear() + 1)
+  cer.validity.notBefore = today;
+  cer.validity.notAfter = new Date(after);
   cer.setSubject(attributes)
   cer.setIssuer(attributes)
   cer.sign(privateKey)
