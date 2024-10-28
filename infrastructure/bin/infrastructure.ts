@@ -15,7 +15,7 @@ const props: SolutionProps = {
   domain: process.env.DOMAIN!,
   appImage: process.env.APP_IMAGE!,
   outputAppImageUri: process.env.OUTPUT_APP_IMAGE_URI!,
-  vpcCidr: process.env.OUTPUT_APP_IMAGE_URI!,
+  vpcCidr: process.env.VPC_CIDR!,
   vpcPrivateSubnetCidr: process.env.VPC_PRIV_SUBNET_CIDR!,
   vpcPrivateSubnetAz: process.env.VPC_PRIV_SUBNET_AZ!,
   vpcPublicSubnetCidr: process.env.VPC_PUB_SUBNET_CIDR!,
