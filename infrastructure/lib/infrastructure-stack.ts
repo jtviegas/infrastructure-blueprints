@@ -165,118 +165,16 @@ export class InfrastructureStack extends cdk.Stack {
     });
 
 
-    
-
-    /*
     const certificateApp = new CfnCertificate(this, `${id}-certificateApp`, {
       certificateAuthorityArn: certificateAuthority.attrArn,
-      certificateSigningRequest: 'certificateSigningRequest',
-      signingAlgorithm: 'signingAlgorithm',
+      certificateSigningRequest: secretCsrPkPem,
+      signingAlgorithm: 'SHA256WITHRSA',
       validity: {
-        type: 'type',
-        value: 123,
-      },
-
-      // the properties below are optional
-      apiPassthrough: {
-        extensions: {
-          certificatePolicies: [{
-            certPolicyId: 'certPolicyId',
-
-            // the properties below are optional
-            policyQualifiers: [{
-              policyQualifierId: 'policyQualifierId',
-              qualifier: {
-                cpsUri: 'cpsUri',
-              },
-            }],
-          }],
-          customExtensions: [{
-            objectIdentifier: 'objectIdentifier',
-            value: 'value',
-
-            // the properties below are optional
-            critical: false,
-          }],
-          extendedKeyUsage: [{
-            extendedKeyUsageObjectIdentifier: 'extendedKeyUsageObjectIdentifier',
-            extendedKeyUsageType: 'extendedKeyUsageType',
-          }],
-          keyUsage: {
-            crlSign: false,
-            dataEncipherment: false,
-            decipherOnly: false,
-            digitalSignature: false,
-            encipherOnly: false,
-            keyAgreement: false,
-            keyCertSign: false,
-            keyEncipherment: false,
-            nonRepudiation: false,
-          },
-          subjectAlternativeNames: [{
-            directoryName: {
-              commonName: 'commonName',
-              country: 'country',
-              customAttributes: [{
-                objectIdentifier: 'objectIdentifier',
-                value: 'value',
-              }],
-              distinguishedNameQualifier: 'distinguishedNameQualifier',
-              generationQualifier: 'generationQualifier',
-              givenName: 'givenName',
-              initials: 'initials',
-              locality: 'locality',
-              organization: 'organization',
-              organizationalUnit: 'organizationalUnit',
-              pseudonym: 'pseudonym',
-              serialNumber: 'serialNumber',
-              state: 'state',
-              surname: 'surname',
-              title: 'title',
-            },
-            dnsName: 'dnsName',
-            ediPartyName: {
-              nameAssigner: 'nameAssigner',
-              partyName: 'partyName',
-            },
-            ipAddress: 'ipAddress',
-            otherName: {
-              typeId: 'typeId',
-              value: 'value',
-            },
-            registeredId: 'registeredId',
-            rfc822Name: 'rfc822Name',
-            uniformResourceIdentifier: 'uniformResourceIdentifier',
-          }],
-        },
-        subject: {
-          commonName: 'commonName',
-          country: 'country',
-          customAttributes: [{
-            objectIdentifier: 'objectIdentifier',
-            value: 'value',
-          }],
-          distinguishedNameQualifier: 'distinguishedNameQualifier',
-          generationQualifier: 'generationQualifier',
-          givenName: 'givenName',
-          initials: 'initials',
-          locality: 'locality',
-          organization: 'organization',
-          organizationalUnit: 'organizationalUnit',
-          pseudonym: 'pseudonym',
-          serialNumber: 'serialNumber',
-          state: 'state',
-          surname: 'surname',
-          title: 'title',
-        },
-      },
-      templateArn: 'templateArn',
-      validityNotBefore: {
-        type: 'type',
-        value: 123,
-      },
+        type: 'MONTHS',
+        value: 12,
+      }
     });
-    */
+
 
 
 

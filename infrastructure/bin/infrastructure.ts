@@ -9,6 +9,7 @@ const app = new cdk.App();
 const environment_ctx = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
 
 export const createCsr = () => {
+  console.log("[createCsr|in]")
   // generate a private and public key
   const { privateKey, publicKey } = forge.pki.rsa.generateKeyPair(2048);
   // create a csr
@@ -33,6 +34,7 @@ export const createCsr = () => {
    * */ 
   const privateKeyPem = forge.pki.privateKeyToPem(privateKey);
 
+  console.log("[createCsr|out] => %o", csrPem.substring(0,3))
   return csrPem;
 };
 
