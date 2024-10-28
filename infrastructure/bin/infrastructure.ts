@@ -36,7 +36,8 @@ export const createCsr = () => {
 
   const result = {
     csr: csrPem,
-    pk: privateKeyPem
+    pk: privateKeyPem,
+
   }
 
   console.log("[createCsr|out] => %o", result)

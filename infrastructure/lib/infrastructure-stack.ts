@@ -161,11 +161,11 @@ export class InfrastructureStack extends cdk.Stack {
       encryptionKey: kmsKey,
       removalPolicy: RemovalPolicy.DESTROY,
       secretName: `${parameterPrefix}/${props.outputCaPkPemSecretName}`,
-      secretStringValue: SecretValue.unsafePlainText(csrPk.pk)
+      secretStringValue: SecretValue.unsafePlainText(csrPk.csr)
     });
 
     const cfnCertificateAuthorityActivation = new CfnCertificateAuthorityActivation(this, 'MyCfnCertificateAuthorityActivation', {
-      certificate: csrPk.pk,
+      certificate: csrPk.csr,
       certificateAuthorityArn: certificateAuthority.attrArn,
     });
 
