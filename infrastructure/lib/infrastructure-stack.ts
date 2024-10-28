@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { CfnOutput, Duration, RemovalPolicy, Size } from 'aws-cdk-lib';
-import { AllowedMethods, Distribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { AllowedMethods, Distribution, OriginProtocolPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Peer, Port, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
@@ -202,10 +202,14 @@ export class InfrastructureStack extends cdk.Stack {
 
     // ------- cloudfront distribution  -------
 
-    const lbOriginApp = new LoadBalancerV2Origin(fargateServiceApp.loadBalancer);
+    const lbOriginApp = new LoadBalancerV2Origin(fargateServiceApp.loadBalancer, {
+      protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
+      keepaliveTimeout: Duration.seconds(30),
+    });
 
     const distributionApp = new Distribution(this, `${id}-distributionApp`, {
-      defaultBehavior: { origin:  lbOriginApp, 
+      defaultBehavior: { 
+        origin:  lbOriginApp, 
         viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY, 
         allowedMethods: AllowedMethods.ALLOW_ALL, 
       },
