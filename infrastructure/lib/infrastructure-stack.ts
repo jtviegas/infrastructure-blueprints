@@ -106,7 +106,7 @@ export class InfrastructureStack extends cdk.Stack {
 
     const dnsHostedZoneAppSubDomain = new PublicHostedZone(this, `${id}-dnsHostedZoneAppSubDomain`, {
       zoneName: props.dnsSubDomain,
-      queryLogsLogGroupArn: logGroup.logGroupArn
+      //queryLogsLogGroupArn: logGroup.logGroupArn
     });
 
     const dnsHostedZoneAppParentDomain = HostedZone.fromLookup(this, `${id}-dnsHostedZoneAppParentDomain`, {domainName: props.dnsParentDomain, privateZone: false});
@@ -115,7 +115,6 @@ export class InfrastructureStack extends cdk.Stack {
       recordName: props.dnsSubDomain,
       values: dnsHostedZoneAppSubDomain.hostedZoneNameServers!,
       ttl: Duration.seconds(172800),
-
     });
 
     // Enable DNSSEC signing for the zone
