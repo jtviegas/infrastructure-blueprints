@@ -2,8 +2,6 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { InfrastructureStack, SolutionProps } from '../lib/infrastructure-stack';
-import * as forge from "node-forge";
-import { CertificateStack, SolutionCertProps } from '../lib/certificate-stack';
 
 const stackName = process.env.INFRA_STACK!
 const stackCertName = process.env.CERT_STACK!
