@@ -134,7 +134,7 @@ export class InfrastructureStack extends cdk.Stack {
         commonName: 'jtviegas.com',
         country: 'DK',
         organization: 'tgedr',
-        organizationalUnit: 'it',
+        //organizationalUnit: 'it',
         // distinguishedNameQualifier: 'string',
         // state: 'string',
         // serialNumber: 'string',

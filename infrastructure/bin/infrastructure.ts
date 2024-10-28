@@ -12,57 +12,40 @@ export const createCsr = () => {
   console.log("[createCsr|in]")
   // generate a private and public key
   const { privateKey, publicKey } = forge.pki.rsa.generateKeyPair(2048);
-  // create a csr
-  const csr = forge.pki.createCertificationRequest();
-  csr.publicKey = publicKey;
-
   const attributes = [
     { name: "commonName", value: process.env.CN! },
     { name: "countryName", value: process.env.COUNTRY! },
     { name: "localityName", value: process.env.LOCAL! },
     { name: "organizationName", value: process.env.ORGANISATION! }
   ]
-  csr.setSubject(attributes);
 
+  // create a csr
+  const csr = forge.pki.createCertificationRequest();
+  csr.publicKey = publicKey;
+  csr.setSubject(attributes);
   // sign the CSR
   csr.sign(privateKey);
   
+  // certificate
   let cer = forge.pki.createCertificate();
-  console.log(cer)
-  cer.publicKey = publicKey
+  cer.publicKey = publicKey;
+  cer.setSubject(attributes);
   const today = new Date()
   const after = new Date()
   after.setFullYear(today.getFullYear() + 1)
   cer.validity.notBefore = today;
   cer.validity.notAfter = after;
-  cer.setSubject(attributes)
   cer.setIssuer(attributes)
   cer.setExtensions([{
     name: 'basicConstraints',
     cA: true, critical: true
-  }, {
+  },{
     name: 'keyUsage',
     keyCertSign: true,
     digitalSignature: true,
     nonRepudiation: true,
     keyEncipherment: true,
     dataEncipherment: true
-  }, {
-    name: 'extKeyUsage',
-    serverAuth: true,
-    clientAuth: true,
-    codeSigning: true,
-    emailProtection: true,
-    timeStamping: true
-  }, {
-    name: 'nsCertType',
-    client: true,
-    server: true,
-    email: true,
-    objsign: true,
-    sslCA: true,
-    emailCA: true,
-    objCA: true
   }]);
 
   cer.sign(privateKey)
