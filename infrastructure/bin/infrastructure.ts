@@ -95,6 +95,7 @@ const props: SolutionProps = {
   // certificate: certificateStack.certificate
   dnsName: process.env.DNS_NAME!,
   hostedZoneId: process.env.DNS_HOSTED_ZONE_ID!,
+  hostedZone: process.env.DNS_HOSTED_ZONE!,
 }
 
 

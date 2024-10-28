@@ -16,6 +16,7 @@ export COUNTRY="DK"
 export LOCAL="Copenhagen"
 export DNS_NAME="development.jtviegas.com"
 export DNS_HOSTED_ZONE_ID="Z00767291N0J3UFN8VP1F"
+export DNS_HOSTED_ZONE="development.jtviegas.com"
 
 export INFRA_STACK="${ORGANISATION}${DOMAIN}${SOLUTION}${ENVIRONMENT}Stack"
 export CERT_STACK="${ORGANISATION}${DOMAIN}${SOLUTION}${ENVIRONMENT}CertStack"

@@ -34,6 +34,7 @@ export interface SolutionProps extends cdk.StackProps {
   // readonly certificate: ICertificate;
   readonly dnsName: string;
   readonly hostedZoneId: string;
+  readonly hostedZone: string;
 }
 
 export class InfrastructureStack extends cdk.Stack {
@@ -248,7 +249,10 @@ export class InfrastructureStack extends cdk.Stack {
       cpu: 512, // Default is 256
       desiredCount: 1, // Default is 1
       domainName: props.dnsName,
-      domainZone: HostedZone.fromHostedZoneId(this, `${id}-dnsHostedZOneId`, props.hostedZoneId),
+      domainZone: HostedZone.fromHostedZoneAttributes(this, `${id}-dnsHostedZOneId`, {
+        hostedZoneId: props.hostedZoneId,
+        zoneName: props.hostedZone,
+      }),
       memoryLimitMiB: 2048, // Default is 512
       loadBalancerName: `${props.solution}-${props.env.name}-lb`,
       propagateTags: PropagatedTagSource.SERVICE,
