@@ -25,6 +25,11 @@ export interface SolutionProps extends cdk.StackProps {
   readonly organisation: string;
   readonly domain: string;
   readonly appImage: string;
+  readonly vpcCidr: string;
+  readonly vpcPrivateSubnetCidr: string;
+  readonly vpcPrivateSubnetAz: string;
+  readonly vpcPublicSubnetCidr: string;
+  readonly vpcPublicSubnetAz: string;
   readonly outputAppImageUri: string;
 }
 
@@ -82,17 +87,17 @@ export class InfrastructureStack extends cdk.Stack {
     // --- network ---
 
     const vpc = new Vpc(this, `${id}-vpc`, {
-      ipAddresses: IpAddresses.cidr('10.53.0.0/23'),
+      ipAddresses: IpAddresses.cidr(props.vpcCidr),
       vpcName: `${namePrefix}-vpc`
     });
     const privateSubnet = new PrivateSubnet(this, `${id}-privateSubnet`, {
-      availabilityZone: 'eu-central-1a',
-      cidrBlock: '10.53.0.0/24',
+      availabilityZone: props.vpcPrivateSubnetAz,
+      cidrBlock: props.vpcPrivateSubnetCidr,
       vpcId: vpc.vpcId,
     });
     const publicSubnet = new PublicSubnet(this, `${id}-publicSubnet`, {
-      availabilityZone: 'eu-central-1a',
-      cidrBlock: '10.53.1.0/24',
+      availabilityZone: props.vpcPublicSubnetAz,
+      cidrBlock: props.vpcPublicSubnetCidr,
       vpcId: vpc.vpcId,
     });
 
@@ -108,7 +113,7 @@ export class InfrastructureStack extends cdk.Stack {
     new StringParameter(this, `${id}-paramAppImageUri`, {
       parameterName: `${parameterPrefix}/${props.outputAppImageUri}`,
       stringValue: containerImageApp.imageUri,
-      description: 'otlp collector service url',
+      description: 'app service url',
       tier: ParameterTier.STANDARD,
       dataType: ParameterDataType.TEXT
     }).applyRemovalPolicy(RemovalPolicy.DESTROY);
