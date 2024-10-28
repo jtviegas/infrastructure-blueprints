@@ -1,7 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
-import { CfnOutput, RemovalPolicy, SecretValue, Size } from 'aws-cdk-lib';
-import { CfnCertificate, CfnCertificateAuthority, CfnCertificateAuthorityActivation, CfnCertificateAuthorityActivationProps, CfnPermission } from 'aws-cdk-lib/aws-acmpca';
-import { IpAddresses, Peer, Port, PrivateSubnet, PublicSubnet, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { RemovalPolicy, Size } from 'aws-cdk-lib';
+import { Peer, Port, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
@@ -10,10 +9,7 @@ import { AccountPrincipal, CompositePrincipal, Effect, ManagedPolicy, PolicyStat
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
-import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
-import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
 import path = require('path');
 
 
@@ -29,9 +25,6 @@ export interface SolutionProps extends cdk.StackProps {
   readonly organisation: string;
   readonly domain: string;
   readonly appImage: string;
-  readonly outputAppImageUri: string;
-  // readonly outputCaPkPemSecretName: string;
-  // readonly certificate: ICertificate;
   readonly dnsName: string;
   readonly hostedZoneId: string;
   readonly hostedZone: string;
@@ -118,77 +111,6 @@ export class InfrastructureStack extends cdk.Stack {
     });
     containerImageApp.repository.grantPullPush(roleSolution)
 
-    new StringParameter(this, `${id}-paramAppImageUri`, {
-      parameterName: `${parameterPrefix}/${props.outputAppImageUri}`,
-      stringValue: containerImageApp.imageUri,
-      description: 'app service url',
-      tier: ParameterTier.STANDARD,
-      dataType: ParameterDataType.TEXT
-    }).applyRemovalPolicy(RemovalPolicy.DESTROY);
-
-    new CfnOutput(this, props.outputAppImageUri, { value: containerImageApp.imageUri });
-
-    // --- certificate authority ---
-
-    // const certificateAuthority = new CfnCertificateAuthority(this, `${id}-certificateAuthority`, {
-    //   type: 'ROOT',
-    //   keyAlgorithm: 'RSA_2048',
-    //   signingAlgorithm: 'SHA256WITHRSA',
-    //   subject: {
-    //     commonName: 'jtviegas.com',
-    //     country: 'DK',
-    //     organization: 'tgedr',
-    //     //organizationalUnit: 'it',
-    //     // distinguishedNameQualifier: 'string',
-    //     // state: 'string',
-    //     // serialNumber: 'string',
-    //     locality: 'Copenhagen',
-    //     // title: 'string',
-    //     // surname: 'string',
-    //     // givenName: 'string',
-    //     // initials: 'DG',
-    //     // pseudonym: 'string',
-    //     // generationQualifier: 'DBG',
-    //   },
-    //   tags: cfnConfTags
-    // });
-
-    // const certificateAuthorityPermission = new CfnPermission(this, `${id}-certificateAuthorityPermission`, {
-    //   actions: ['IssueCertificate', 'GetCertificate', 'ListPermissions'],
-    //   certificateAuthorityArn: certificateAuthority.attrArn,
-    //   principal: 'acm.amazonaws.com',
-    // });
-
-    // const csrPk = createCsr();
-    // new Secret(this, `${id}-secretCaPkPem`, {
-    //   description: 'CA private key in pem format',
-    //   encryptionKey: kmsKey,
-    //   removalPolicy: RemovalPolicy.DESTROY,
-    //   secretName: `${parameterPrefix}/${props.outputCaPkPemSecretName}`,
-    //   secretStringValue: SecretValue.unsafePlainText(csrPk.pk)
-    // });
-
-    // const pkCA = new CfnCertificate(this, `${id}-pkCA`, {
-    //   certificateAuthorityArn: certificateAuthority.attrArn,
-    //   certificateSigningRequest: csrPk.csr,
-    //   signingAlgorithm: 'SHA256WITHRSA',
-    //   validity: {
-    //     type: 'MONTHS',
-    //     value: 12,
-    //   }
-    // });
-
-    // const cfnCertificateAuthorityActivation = new CfnCertificateAuthorityActivation(this, 'MyCfnCertificateAuthorityActivation', {
-    //   certificate: pkCA.attrCertificate , //csrPk.cer,
-    //   certificateAuthorityArn: certificateAuthority.attrArn,
-    // });
-    
-    // //pkCA.node.addDependency(cfnCertificateAuthorityActivation)
-
-
-
-
-
     // --- fargate service ---
 
     const ecsCluster = new Cluster(this, `${id}-ecsCluster`, {
@@ -233,9 +155,9 @@ export class InfrastructureStack extends cdk.Stack {
       }]
     });
 
-    const securityGroupAppHttp80 = new SecurityGroup(this, `${id}-securityGroupAppHttp80`, {
+    const securityGroupAppHttp80 = new SecurityGroup(this, `${id}-securityGroupApp`, {
       vpc: vpc,
-      securityGroupName: `${namePrefix}-appHttp80`,
+      securityGroupName: `${namePrefix}-sgApp`,
     });
     securityGroupAppHttp80.addIngressRule(Peer.anyIpv4(), Port.allTcp(), "allow ingress in port 80")
 
@@ -249,12 +171,12 @@ export class InfrastructureStack extends cdk.Stack {
       cpu: 512, // Default is 256
       desiredCount: 1, // Default is 1
       domainName: props.dnsName,
-      domainZone: HostedZone.fromHostedZoneAttributes(this, `${id}-dnsHostedZOneId`, {
+      domainZone: HostedZone.fromHostedZoneAttributes(this, `${id}-dnsHostedZoneId`, {
         hostedZoneId: props.hostedZoneId,
         zoneName: props.hostedZone,
       }),
       memoryLimitMiB: 2048, // Default is 512
-      loadBalancerName: `${props.solution}-${props.env.name}-lb`,
+      loadBalancerName: `${namePrefix}-lb`,
       propagateTags: PropagatedTagSource.SERVICE,
       protocol: ApplicationProtocol.HTTPS,
       publicLoadBalancer: true,
