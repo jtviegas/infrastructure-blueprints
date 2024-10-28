@@ -174,8 +174,7 @@ export class InfrastructureStack extends cdk.Stack {
       vpc: vpc,
       securityGroupName: `${namePrefix}-sgApp`,
     });
-    securityGroupAppHttp80.addIngressRule(Peer.anyIpv4(), Port.HTTPS, "allow ingress in port 443")
-    securityGroupAppHttp80.addIngressRule(Peer.anyIpv4(), Port.HTTP, "allow ingress in port 80")
+    securityGroupAppHttp80.addIngressRule(Peer.anyIpv4(), Port.allTcp(), "allow ingress in port 443")
 
     const fargateServiceApp = new ApplicationLoadBalancedFargateService(this, `${id}-fargateServiceApp`, {
       assignPublicIp: false,
