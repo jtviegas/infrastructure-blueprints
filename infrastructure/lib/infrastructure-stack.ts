@@ -36,10 +36,7 @@ export class InfrastructureStack extends cdk.Stack {
     // --- common resources ---
     const parameterPrefix = `/${props.solution}/${props.env.name}/${props.env.region}`
     const namePrefix = `${props.domain}-${props.solution}`
-    const kmsKey = new Key(this, `${id}-kmsKey`, {
-      keySpec: KeySpec.ECC_NIST_P256,
-      keyUsage: KeyUsage.SIGN_VERIFY,
-    });
+    const kmsKey = new Key(this, `${id}-kmsKey`);
     const logGroup = new LogGroup(this, `${id}-logGroup`, { logGroupName: `${namePrefix}-logGroup`, removalPolicy: RemovalPolicy.DESTROY });
     const teamAccount = new AccountPrincipal(props.env.account)
 
@@ -119,9 +116,6 @@ export class InfrastructureStack extends cdk.Stack {
       values: dnsHostedZoneAppSubDomain.hostedZoneNameServers!,
       ttl: Duration.seconds(172800),
     });
-
-    // Enable DNSSEC signing for the zone
-    dnsHostedZoneAppSubDomain.enableDnssec({ kmsKey });
 
     // --- container image ---
 
