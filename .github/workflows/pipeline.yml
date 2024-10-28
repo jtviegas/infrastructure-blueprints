@@ -6,7 +6,7 @@ on:
 
 jobs:
   test_deploy:
-    name: test functions, deploy infra
+    name: deploy
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -17,7 +17,6 @@ jobs:
     - run: ./helper.sh infra deps
     - run: ./helper.sh infra on
       env:
-        ROOT_ONE_PSWD: ${{ secrets.ROOT_ONE_PSWD }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 
