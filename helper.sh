@@ -126,10 +126,12 @@ usage() {
   $(basename $0) { option }
       options:
       - commands: lists handy commands we use all the time
-      - global_infra_reqs: install requirements gloabally required in the ssytem for IaC
-      - bashutils {package, update}
-        - updates the include '.bashutils' file
-        - packages bashutils for new releaae
+      - infra: 
+        - reqs: install requirements globally required in the sytem for IaC
+        - deps: installs infra code dependencies
+        - on: deploys infra
+        - off: destroys infra
+
 EOM
   exit 1
 }
