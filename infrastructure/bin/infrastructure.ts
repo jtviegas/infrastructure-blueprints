@@ -23,12 +23,11 @@ export const createCsr = () => {
   const csr = forge.pki.createCertificationRequest();
   csr.publicKey = publicKey;
   csr.setSubject(attributes);
-  // sign the CSR
-  csr.sign(privateKey);
+ 
   
   // certificate
   let cer = forge.pki.createCertificate();
-  cer.publicKey = publicKey;
+  cer.publicKey = csr.publicKey;
   cer.setSubject(attributes);
   const today = new Date()
   const after = new Date()
@@ -51,6 +50,8 @@ export const createCsr = () => {
   cer.sign(privateKey)
   const cerPem = forge.pki.certificateToPem(cer);
   
+   // sign the CSR
+   csr.sign(privateKey);
   // convert csr to pem file
   const csrPem = forge.pki.certificationRequestToPem(csr);
 
