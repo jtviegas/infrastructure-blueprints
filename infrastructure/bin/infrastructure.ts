@@ -16,19 +16,24 @@ export const createCsr = () => {
   const csr = forge.pki.createCertificationRequest();
   csr.publicKey = publicKey;
 
-  csr.setSubject([
+  const attributes = [
     { name: "commonName", value: process.env.CN! },
     { name: "countryName", value: process.env.COUNTRY! },
     { name: "localityName", value: process.env.LOCAL! },
     { name: "organizationName", value: process.env.ORGANISATION! },
-  ]);
+  ]
+  csr.setSubject(attributes);
 
   // sign the CSR
   csr.sign(privateKey);
   
-  let cer = forge.pki.createCertificate()
-  cer.sign(privateKey)
-  const cerPem = forge.pki.certificateToPem(cer)
+  let cer = forge.pki.createCertificate();
+  console.log(cer)
+  cer.privateKey = privateKey
+  cer.publicKey = publicKey
+  cer.setSubject(attributes)
+  cer.setIssuer(attributes)
+  const cerPem = forge.pki.certificateToPem(cer);
   
   // convert csr to pem file
   const csrPem = forge.pki.certificationRequestToPem(csr);
