@@ -164,12 +164,6 @@ export class InfrastructureStack extends cdk.Stack {
       secretStringValue: SecretValue.unsafePlainText(csrPk.pk)
     });
 
-    const cfnCertificateAuthorityActivation = new CfnCertificateAuthorityActivation(this, 'MyCfnCertificateAuthorityActivation', {
-      certificate: csrPk.cer,
-      certificateAuthorityArn: certificateAuthority.attrArn,
-    });
-
-
     const pkCA = new CfnCertificate(this, `${id}-pkCA`, {
       certificateAuthorityArn: certificateAuthority.attrArn,
       certificateSigningRequest: csrPk.csr,
@@ -179,7 +173,13 @@ export class InfrastructureStack extends cdk.Stack {
         value: 12,
       }
     });
-    pkCA.node.addDependency(cfnCertificateAuthorityActivation)
+
+    const cfnCertificateAuthorityActivation = new CfnCertificateAuthorityActivation(this, 'MyCfnCertificateAuthorityActivation', {
+      certificate: pkCA.attrCertificate , //csrPk.cer,
+      certificateAuthorityArn: certificateAuthority.attrArn,
+    });
+    
+    //pkCA.node.addDependency(cfnCertificateAuthorityActivation)
 
 
 
