@@ -19,9 +19,8 @@ const props: SolutionProps = {
   organisation: process.env.ORGANISATION!,
   domain: process.env.DOMAIN!,
   appImage: process.env.APP_IMAGE!,
-  dnsName: process.env.DNS_NAME!,
-  hostedZoneId: process.env.DNS_HOSTED_ZONE_ID!,
-  hostedZone: process.env.DNS_HOSTED_ZONE!,
+  dnsSubDomain: process.env.DNS_SUB_DOMAIN!,
+  dnsParentDomain: process.env.DNS_PARENT_DOMAIN!,
 }
 
 

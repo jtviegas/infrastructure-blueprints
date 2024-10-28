@@ -27,8 +27,6 @@ export interface SolutionProps extends cdk.StackProps {
   readonly appImage: string;
   readonly dnsSubDomain: string;
   readonly dnsParentDomain: string;
-  readonly hostedZoneId: string;
-  readonly hostedZone: string;
 }
 
 export class InfrastructureStack extends cdk.Stack {
@@ -77,6 +75,7 @@ export class InfrastructureStack extends cdk.Stack {
           "execute-api:Invoke",
           "ecs:*",
           "kms:*",
+          "route53:*",
         ],
         resources: ["*"],
       }));
