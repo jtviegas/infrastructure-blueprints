@@ -155,23 +155,15 @@ export class InfrastructureStack extends cdk.Stack {
       principal: 'acm.amazonaws.com',
     });
 
-    const secretCsrPkPemObj = Secret.fromSecretNameV2(this, `${id}-queryCsrPkPem`, `${parameterPrefix}/${props.outputCsrPkPemSecretName}`);
-    console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-    console.log(secretCsrPkPemObj.secretValue.unsafeUnwrap())
-    let secretCsrPkPem = null;
-    if ( secretCsrPkPemObj.secretValue.unsafeUnwrap() == null ){
-      secretCsrPkPem = createCsr();
-      new Secret(this, `${id}-secretCsrPkPem`, {
-        description: 'private key in pem format to issue certificates',
-        encryptionKey: kmsKey,
-        removalPolicy: RemovalPolicy.DESTROY,
-        secretName: `${parameterPrefix}/${props.outputCsrPkPemSecretName}`,
-        secretStringValue: SecretValue.unsafePlainText(secretCsrPkPem)
-      });
-    }
-    else {
-      secretCsrPkPem = secretCsrPkPemObj.secretValue
-    }
+    const secretCsrPkPem = createCsr();
+    new Secret(this, `${id}-secretCsrPkPem`, {
+      description: 'private key in pem format to issue certificates',
+      encryptionKey: kmsKey,
+      removalPolicy: RemovalPolicy.DESTROY,
+      secretName: `${parameterPrefix}/${props.outputCsrPkPemSecretName}`,
+      secretStringValue: SecretValue.unsafePlainText(secretCsrPkPem)
+    });
+
 
     
 
