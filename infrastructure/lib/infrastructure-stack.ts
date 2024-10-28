@@ -6,7 +6,7 @@ import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import { ApplicationProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { AccountPrincipal, CompositePrincipal, Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { Key } from 'aws-cdk-lib/aws-kms';
+import { Key, KeySpec, KeyUsage } from 'aws-cdk-lib/aws-kms';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { HostedZone, NsRecord, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
@@ -36,7 +36,10 @@ export class InfrastructureStack extends cdk.Stack {
     // --- common resources ---
     const parameterPrefix = `/${props.solution}/${props.env.name}/${props.env.region}`
     const namePrefix = `${props.domain}-${props.solution}`
-    const kmsKey = new Key(this, `${id}-kmsKey`);
+    const kmsKey = new Key(this, `${id}-kmsKey`, {
+      keySpec: KeySpec.ECC_NIST_P256,
+      keyUsage: KeyUsage.SIGN_VERIFY,
+    });
     const logGroup = new LogGroup(this, `${id}-logGroup`, { logGroupName: `${namePrefix}-logGroup`, removalPolicy: RemovalPolicy.DESTROY });
     const teamAccount = new AccountPrincipal(props.env.account)
 
