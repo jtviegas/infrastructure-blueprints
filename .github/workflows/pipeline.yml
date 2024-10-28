@@ -2,7 +2,7 @@ name: release build, test & publish
 
 on:
   push:
-    branches: [ main, release_*, feature_* ]
+    branches: [ development, release_*, feature_* ]
 
 jobs:
   test_deploy:

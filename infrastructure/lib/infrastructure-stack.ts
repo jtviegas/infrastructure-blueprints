@@ -1,5 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
-import { Duration, RemovalPolicy, Size } from 'aws-cdk-lib';
+import { CfnOutput, Duration, RemovalPolicy, Size } from 'aws-cdk-lib';
+import { AllowedMethods, Distribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Peer, Port, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
@@ -197,6 +199,21 @@ export class InfrastructureStack extends cdk.Stack {
       serviceName: `${namePrefix}-app`,
       taskDefinition: taskDefinitionApp,
     });
+
+    // ------- cloudfront distribution  -------
+
+    const lbOriginApp = new LoadBalancerV2Origin(fargateServiceApp.loadBalancer);
+
+    const distributionApp = new Distribution(this, `${id}-distributionApp`, {
+      defaultBehavior: { origin:  lbOriginApp, 
+        viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY, 
+        allowedMethods: AllowedMethods.ALLOW_ALL, 
+      },
+      enableLogging: true
+    });
+
+    new CfnOutput(this, "distributionUrl", { value: `https://${distributionApp.distributionDomainName}` });
+
 
   }
 }
