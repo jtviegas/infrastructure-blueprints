@@ -39,7 +39,7 @@ export const createCsr = () => {
   cer.setIssuer(attributes)
   cer.setExtensions([{
     name: 'basicConstraints',
-    cA: true
+    cA: true, critical: true
   }, {
     name: 'keyUsage',
     keyCertSign: true,
