@@ -29,10 +29,10 @@ export const createCsr = () => {
   
   let cer = forge.pki.createCertificate();
   console.log(cer)
-  cer.privateKey = privateKey
   cer.publicKey = publicKey
   cer.setSubject(attributes)
   cer.setIssuer(attributes)
+  cer.sign(privateKey)
   const cerPem = forge.pki.certificateToPem(cer);
   
   // convert csr to pem file
