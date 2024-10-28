@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { RemovalPolicy, Size } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Size } from 'aws-cdk-lib';
 import { Peer, Port, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
@@ -8,7 +8,7 @@ import { ApplicationProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { AccountPrincipal, CompositePrincipal, Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import { HostedZone } from 'aws-cdk-lib/aws-route53';
+import { HostedZone, NsRecord, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
 import path = require('path');
 
@@ -25,7 +25,8 @@ export interface SolutionProps extends cdk.StackProps {
   readonly organisation: string;
   readonly domain: string;
   readonly appImage: string;
-  readonly dnsName: string;
+  readonly dnsSubDomain: string;
+  readonly dnsParentDomain: string;
   readonly hostedZoneId: string;
   readonly hostedZone: string;
 }
@@ -102,6 +103,25 @@ export class InfrastructureStack extends cdk.Stack {
       ]
     });
 
+    // --- dns ---
+
+    const dnsHostedZoneAppSubDomain = new PublicHostedZone(this, `${id}-dnsHostedZoneAppSubDomain`, {
+      zoneName: props.dnsSubDomain,
+      queryLogsLogGroupArn: logGroup.logGroupArn
+    });
+
+    const dnsHostedZoneAppParentDomain = HostedZone.fromLookup(this, `${id}-dnsHostedZoneAppParentDomain`, {domainName: props.dnsParentDomain, privateZone: false});
+    const dnsNsRecordAppSubDomain = new NsRecord(this, `${id}-dnsNsRecordAppSubDomain`, {
+      zone: dnsHostedZoneAppParentDomain,
+      recordName: props.dnsSubDomain,
+      values: dnsHostedZoneAppSubDomain.hostedZoneNameServers!,
+      ttl: Duration.seconds(172800),
+
+    });
+
+    // Enable DNSSEC signing for the zone
+    dnsHostedZoneAppSubDomain.enableDnssec({ kmsKey });
+
     // --- container image ---
 
     const containerImageApp = new DockerImageAsset(this, `${id}-containerImageApp`, {
@@ -159,7 +179,8 @@ export class InfrastructureStack extends cdk.Stack {
       vpc: vpc,
       securityGroupName: `${namePrefix}-sgApp`,
     });
-    securityGroupAppHttp80.addIngressRule(Peer.anyIpv4(), Port.allTcp(), "allow ingress in port 80")
+    securityGroupAppHttp80.addIngressRule(Peer.anyIpv4(), Port.HTTPS, "allow ingress in port 443")
+    securityGroupAppHttp80.addIngressRule(Peer.anyIpv4(), Port.HTTP, "allow ingress in port 80")
 
     const fargateServiceApp = new ApplicationLoadBalancedFargateService(this, `${id}-fargateServiceApp`, {
       assignPublicIp: false,
@@ -170,11 +191,8 @@ export class InfrastructureStack extends cdk.Stack {
       },
       cpu: 512, // Default is 256
       desiredCount: 1, // Default is 1
-      domainName: props.dnsName,
-      domainZone: HostedZone.fromHostedZoneAttributes(this, `${id}-dnsHostedZoneId`, {
-        hostedZoneId: props.hostedZoneId,
-        zoneName: props.hostedZone,
-      }),
+      domainName: props.dnsSubDomain,
+      domainZone: dnsHostedZoneAppSubDomain,
       memoryLimitMiB: 2048, // Default is 512
       loadBalancerName: `${namePrefix}-lb`,
       propagateTags: PropagatedTagSource.SERVICE,
