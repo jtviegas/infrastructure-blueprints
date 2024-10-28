@@ -170,7 +170,7 @@ export class InfrastructureStack extends cdk.Stack {
     securityGroupAppHttp80.addIngressRule(Peer.anyIpv4(), Port.allTcp(), "allow ingress in port 80")
 
     const fargateServiceApp = new ApplicationLoadBalancedFargateService(this, `${id}-fargateServiceApp`, {
-      assignPublicIp: false,
+      assignPublicIp: true,
       cluster: ecsCluster,
       circuitBreaker: {
         enable: true,
