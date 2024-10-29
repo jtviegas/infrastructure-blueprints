@@ -40,7 +40,7 @@ export class InfrastructureStack extends cdk.Stack {
     const parameterPrefix = `/${props.solution}/${props.env.name}/${props.env.region}`
     const namePrefix = `${props.domain}-${props.solution}`
     const kmsKey = new Key(this, `${id}-kmsKey`);
-    const logGroup = new LogGroup(this, `${id}-logGroup`, { logGroupName: `${namePrefix}-logGroup`, removalPolicy: RemovalPolicy.DESTROY });
+    const logGroup = new LogGroup(this, `${id}-logGroup`, { logGroupName: `${props.domain}${props.solution}logGroup`, removalPolicy: RemovalPolicy.DESTROY });
     const teamAccount = new AccountPrincipal(props.env.account)
 
     const cfnConfTags = []
