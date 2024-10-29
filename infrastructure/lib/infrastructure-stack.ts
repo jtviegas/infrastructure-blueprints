@@ -125,6 +125,7 @@ export class InfrastructureStack extends cdk.Stack {
       zoneName: props.dnsSubDomain,
       queryLogsLogGroupArn: logGroup.logGroupArn
     });
+    dnsHostedZoneAppSubDomain.node.addDependency(logGroup);
     dnsHostedZoneAppSubDomain.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     const dnsHostedZoneAppParentDomain = HostedZone.fromLookup(this, `${id}-dnsHostedZoneAppParentDomain`, {domainName: props.dnsParentDomain, privateZone: false});
