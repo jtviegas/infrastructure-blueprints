@@ -221,6 +221,7 @@ export class InfrastructureStack extends cdk.Stack {
       taskDefinition: taskDefinitionApp,
       openListener: false,
     });
+    fargateServiceApp.loadBalancer.addSecurityGroup(securityGroupApp)
 
     // ------- cloudfront distribution  -------
 
