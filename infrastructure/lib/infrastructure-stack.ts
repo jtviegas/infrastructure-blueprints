@@ -187,11 +187,11 @@ export class InfrastructureStack extends cdk.Stack {
       }]
     });
 
-    const securityGroupAppHttp80 = new SecurityGroup(this, `${id}-securityGroupApp`, {
+    const securityGroupApp = new SecurityGroup(this, `${id}-securityGroupApp`, {
       vpc: vpc,
       securityGroupName: `${namePrefix}-sgApp`,
     });
-    securityGroupAppHttp80.addIngressRule(Peer.anyIpv4(), Port.allTcp(), "allow all tcp ingress")
+    securityGroupApp.addIngressRule(Peer.prefixList("com.amazonaws.global.cloudfront.origin-facing"), Port.allTcp(), "allow all tcp ingress from cloudfront distribution")
 
     const fargateServiceApp = new ApplicationLoadBalancedFargateService(this, `${id}-fargateServiceApp`, {
       assignPublicIp: false,
@@ -210,18 +210,13 @@ export class InfrastructureStack extends cdk.Stack {
       protocol: ApplicationProtocol.HTTPS,
       publicLoadBalancer: true,
       redirectHTTP: true,
-      securityGroups: [securityGroupAppHttp80],
+      securityGroups: [securityGroupApp],
       serviceName: `${namePrefix}-app`,
       taskDefinition: taskDefinitionApp,
     });
 
     // ------- cloudfront distribution  -------
 
-    // const lbOriginApp = new LoadBalancerV2Origin(fargateServiceApp.loadBalancer, {
-    //   protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
-      
-    //   keepaliveTimeout: Duration.seconds(30),
-    // });
     const lbOriginApp = new HttpOrigin(props.dnsSubDomain, {protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY})
 
     const distributionApp = new Distribution(this, `${id}-distributionApp`, {
