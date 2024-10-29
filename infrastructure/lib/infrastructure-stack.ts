@@ -123,8 +123,9 @@ export class InfrastructureStack extends cdk.Stack {
 
     const dnsHostedZoneAppSubDomain = new PublicHostedZone(this, `${id}-dnsHostedZoneAppSubDomain`, {
       zoneName: props.dnsSubDomain,
-      //queryLogsLogGroupArn: logGroup.logGroupArn
+      queryLogsLogGroupArn: logGroup.logGroupArn
     });
+    dnsHostedZoneAppSubDomain.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     const dnsHostedZoneAppParentDomain = HostedZone.fromLookup(this, `${id}-dnsHostedZoneAppParentDomain`, {domainName: props.dnsParentDomain, privateZone: false});
     const dnsNsRecordAppSubDomain = new NsRecord(this, `${id}-dnsNsRecordAppSubDomain`, {
@@ -133,6 +134,7 @@ export class InfrastructureStack extends cdk.Stack {
       values: dnsHostedZoneAppSubDomain.hostedZoneNameServers!,
       ttl: Duration.seconds(172800),
     });
+    dnsNsRecordAppSubDomain.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     // --- container image ---
 
@@ -213,6 +215,7 @@ export class InfrastructureStack extends cdk.Stack {
       securityGroups: [securityGroupApp],
       serviceName: `${namePrefix}-app`,
       taskDefinition: taskDefinitionApp,
+      openListener: false,
     });
 
     // ------- cloudfront distribution  -------
@@ -226,8 +229,6 @@ export class InfrastructureStack extends cdk.Stack {
         cachePolicy: CachePolicy.CACHING_DISABLED,
         allowedMethods: AllowedMethods.ALLOW_ALL, 
         originRequestPolicy: OriginRequestPolicy.ALL_VIEWER,
-
-
       },
       enableLogging: true,
       logBucket: bucketLogs,
