@@ -7,11 +7,11 @@ import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import { ApplicationProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { AccountPrincipal, CompositePrincipal, Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { AccountPrincipal, ArnPrincipal, CompositePrincipal, Effect, ManagedPolicy, Policy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Key, KeySpec, KeyUsage } from 'aws-cdk-lib/aws-kms';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { HostedZone, NsRecord, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import path = require('path');
 
@@ -59,6 +59,7 @@ export class InfrastructureStack extends cdk.Stack {
           expiration: cdk.Duration.days(1), // Automatically delete objects after 1 day
         },
       ],
+      objectOwnership: ObjectOwnership.OBJECT_WRITER,
     });
 
     // --- solution role ---
@@ -231,12 +232,12 @@ export class InfrastructureStack extends cdk.Stack {
       },
       enableLogging: true,
       logBucket: bucketLogs,
-      logIncludesCookies: true
+      logIncludesCookies: true,
+      
     });
+
     distributionApp.applyRemovalPolicy(RemovalPolicy.DESTROY);
-
     new CfnOutput(this, "distributionUrl", { value: `https://${distributionApp.distributionDomainName}` });
-
 
   }
 }
