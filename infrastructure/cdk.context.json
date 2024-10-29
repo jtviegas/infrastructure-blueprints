@@ -3,5 +3,9 @@
     "eu-north-1a",
     "eu-north-1b",
     "eu-north-1c"
-  ]
+  ],
+  "hosted-zone:account=041651352119:domainName=jtviegas.com:privateZone=false:region=eu-north-1": {
+    "Id": "/hostedzone/Z094156632T0CPYNJNBSO",
+    "Name": "jtviegas.com."
+  }
 }
