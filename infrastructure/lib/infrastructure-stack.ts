@@ -216,8 +216,8 @@ export class InfrastructureStack extends cdk.Stack {
         originRequestPolicy: OriginRequestPolicy.ALL_VIEWER,
       },
       enableLogging: true,
-
     });
+    distributionApp.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     new CfnOutput(this, "distributionUrl", { value: `https://${distributionApp.distributionDomainName}` });
 
