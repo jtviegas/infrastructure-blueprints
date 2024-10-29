@@ -50,7 +50,7 @@ export class InfrastructureStack extends cdk.Stack {
 
     // --- logs bucket ---
     const bucketLogs = new Bucket(this, `${id}-bucketLogs`, {
-      bucketName: `${namePrefix}-bucketLogs`,
+      bucketName: `${namePrefix}-bucket-logs`,
       versioned: false, // Versioning is not enabled since no data should be stored for more than 1 day
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
