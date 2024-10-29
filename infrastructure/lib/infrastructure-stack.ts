@@ -1,7 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { CfnOutput, Duration, RemovalPolicy, Size } from 'aws-cdk-lib';
 import { AllowedMethods, CachePolicy, Distribution, OriginProtocolPolicy, OriginRequestPolicy, ResponseHeadersPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
-import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { HttpOrigin, LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Peer, Port, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
@@ -217,10 +217,12 @@ export class InfrastructureStack extends cdk.Stack {
 
     // ------- cloudfront distribution  -------
 
-    const lbOriginApp = new LoadBalancerV2Origin(fargateServiceApp.loadBalancer, {
-      protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
-      keepaliveTimeout: Duration.seconds(30),
-    });
+    // const lbOriginApp = new LoadBalancerV2Origin(fargateServiceApp.loadBalancer, {
+    //   protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
+      
+    //   keepaliveTimeout: Duration.seconds(30),
+    // });
+    const lbOriginApp = new HttpOrigin(props.dnsSubDomain, {protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY})
 
     const distributionApp = new Distribution(this, `${id}-distributionApp`, {
       defaultBehavior: { 
@@ -229,11 +231,14 @@ export class InfrastructureStack extends cdk.Stack {
         cachePolicy: CachePolicy.CACHING_DISABLED,
         allowedMethods: AllowedMethods.ALLOW_ALL, 
         originRequestPolicy: OriginRequestPolicy.ALL_VIEWER,
+
+
       },
       enableLogging: true,
       logBucket: bucketLogs,
       logIncludesCookies: true,
-      logFilePrefix: `${namePrefix}-cloudfront`
+      logFilePrefix: `${namePrefix}-cloudfront`,
+
     });
 
     distributionApp.applyRemovalPolicy(RemovalPolicy.DESTROY);
