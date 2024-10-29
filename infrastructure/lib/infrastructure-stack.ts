@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { CfnOutput, Duration, RemovalPolicy, Size } from 'aws-cdk-lib';
-import { AllowedMethods, Distribution, OriginProtocolPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { AllowedMethods, CachePolicy, Distribution, OriginProtocolPolicy, OriginRequestPolicy, ResponseHeadersPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { LoadBalancerV2Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Peer, Port, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
@@ -210,10 +210,13 @@ export class InfrastructureStack extends cdk.Stack {
     const distributionApp = new Distribution(this, `${id}-distributionApp`, {
       defaultBehavior: { 
         origin:  lbOriginApp, 
-        viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY, 
+        viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
+        cachePolicy: CachePolicy.CACHING_DISABLED,
         allowedMethods: AllowedMethods.ALLOW_ALL, 
+        originRequestPolicy: OriginRequestPolicy.ALL_VIEWER,
       },
-      enableLogging: true
+      enableLogging: true,
+
     });
 
     new CfnOutput(this, "distributionUrl", { value: `https://${distributionApp.distributionDomainName}` });
