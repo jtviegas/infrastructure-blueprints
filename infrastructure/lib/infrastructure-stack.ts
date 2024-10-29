@@ -203,7 +203,7 @@ export class InfrastructureStack extends cdk.Stack {
     // ------- cloudfront distribution  -------
 
     const lbOriginApp = new LoadBalancerV2Origin(fargateServiceApp.loadBalancer, {
-      protocolPolicy: OriginProtocolPolicy.HTTP_ONLY,
+      protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
       keepaliveTimeout: Duration.seconds(30),
     });
 
