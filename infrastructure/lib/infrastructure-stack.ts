@@ -191,7 +191,7 @@ export class InfrastructureStack extends cdk.Stack {
       vpc: vpc,
       securityGroupName: `${namePrefix}-sgApp`,
     });
-    securityGroupApp.addIngressRule(Peer.prefixList("com.amazonaws.global.cloudfront.origin-facing"), Port.allTcp(), "allow all tcp ingress from cloudfront distribution")
+    securityGroupApp.addIngressRule(Peer.prefixList("pl-fab65393"), Port.allTcp(), "allow all tcp ingress from cloudfront distribution")
 
     const fargateServiceApp = new ApplicationLoadBalancedFargateService(this, `${id}-fargateServiceApp`, {
       assignPublicIp: false,
