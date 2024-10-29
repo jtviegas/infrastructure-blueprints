@@ -11,6 +11,7 @@ import { AccountPrincipal, CompositePrincipal, Effect, ManagedPolicy, PolicyStat
 import { Key, KeySpec, KeyUsage } from 'aws-cdk-lib/aws-kms';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { HostedZone, NsRecord, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import path = require('path');
 
@@ -46,6 +47,19 @@ export class InfrastructureStack extends cdk.Stack {
     for (const key in props.tags) {
       cfnConfTags.push({ key: key, value: props.tags[key] })
     }
+
+    // --- logs bucket ---
+    const bucketLogs = new Bucket(this, `${id}-bucketLogs`, {
+      bucketName: `${namePrefix}-bucketLogs`,
+      versioned: false, // Versioning is not enabled since no data should be stored for more than 1 day
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      lifecycleRules: [
+        {
+          expiration: cdk.Duration.days(1), // Automatically delete objects after 1 day
+        },
+      ],
+    });
 
     // --- solution role ---
 
@@ -216,6 +230,8 @@ export class InfrastructureStack extends cdk.Stack {
         originRequestPolicy: OriginRequestPolicy.ALL_VIEWER,
       },
       enableLogging: true,
+      logBucket: bucketLogs,
+      logIncludesCookies: true
     });
     distributionApp.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
