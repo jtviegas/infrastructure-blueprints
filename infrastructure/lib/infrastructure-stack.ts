@@ -40,7 +40,12 @@ export class InfrastructureStack extends cdk.Stack {
     const parameterPrefix = `/${props.solution}/${props.env.name}/${props.env.region}`
     const namePrefix = `${props.domain}-${props.solution}`
     const kmsKey = new Key(this, `${id}-kmsKey`);
-    const logGroup = new LogGroup(this, `${id}-logGroup`, { logGroupName: `${props.domain}${props.solution}logGroup`, removalPolicy: RemovalPolicy.DESTROY });
+    const logGroup = new LogGroup(this, `${id}-logGroup`, 
+      { 
+        logGroupName: `${props.domain}${props.solution}logGroup`, 
+        removalPolicy: RemovalPolicy.DESTROY,
+    });
+    
     const teamAccount = new AccountPrincipal(props.env.account)
 
     const cfnConfTags = []
@@ -122,10 +127,8 @@ export class InfrastructureStack extends cdk.Stack {
     // --- dns ---
 
     const dnsHostedZoneAppSubDomain = new PublicHostedZone(this, `${id}-dnsHostedZoneAppSubDomain`, {
-      zoneName: props.dnsSubDomain,
-      queryLogsLogGroupArn: logGroup.logGroupArn
+      zoneName: props.dnsSubDomain
     });
-    dnsHostedZoneAppSubDomain.node.addDependency(logGroup);
     dnsHostedZoneAppSubDomain.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     const dnsHostedZoneAppParentDomain = HostedZone.fromLookup(this, `${id}-dnsHostedZoneAppParentDomain`, {domainName: props.dnsParentDomain, privateZone: false});
