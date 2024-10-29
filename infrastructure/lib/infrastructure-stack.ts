@@ -233,7 +233,7 @@ export class InfrastructureStack extends cdk.Stack {
       enableLogging: true,
       logBucket: bucketLogs,
       logIncludesCookies: true,
-      
+      logFilePrefix: `${namePrefix}-cloudfront`
     });
 
     distributionApp.applyRemovalPolicy(RemovalPolicy.DESTROY);
