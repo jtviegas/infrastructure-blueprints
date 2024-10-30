@@ -28,7 +28,7 @@ export interface SolutionProps extends cdk.StackProps {
   readonly organisation: string;
   readonly domain: string;
   readonly appImage: string;
-  readonly dnsSubDomain: string;
+  readonly dnsLoadBalancerDomain: string;
   readonly dnsParentDomain: string;
 }
 
@@ -126,19 +126,19 @@ export class InfrastructureStack extends cdk.Stack {
 
     // --- dns ---
 
-    const dnsHostedZoneAppSubDomain = new PublicHostedZone(this, `${id}-dnsHostedZoneAppSubDomain`, {
-      zoneName: props.dnsSubDomain
+    const hostedZoneLoadBalancer = new PublicHostedZone(this, `${id}-hostedZoneLoadBalancer`, {
+      zoneName: props.dnsLoadBalancerDomain
     });
-    dnsHostedZoneAppSubDomain.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    hostedZoneLoadBalancer.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
-    const dnsHostedZoneAppParentDomain = HostedZone.fromLookup(this, `${id}-dnsHostedZoneAppParentDomain`, {domainName: props.dnsParentDomain, privateZone: false});
-    const dnsNsRecordAppSubDomain = new NsRecord(this, `${id}-dnsNsRecordAppSubDomain`, {
-      zone: dnsHostedZoneAppParentDomain,
-      recordName: props.dnsSubDomain,
-      values: dnsHostedZoneAppSubDomain.hostedZoneNameServers!,
+    const hostedZoneParentDomain = HostedZone.fromLookup(this, `${id}-hostedZoneParentDomain`, {domainName: props.dnsParentDomain, privateZone: false});
+    const nsRecordLoadBalancer = new NsRecord(this, `${id}-nsRecordLoadBalancer`, {
+      zone: hostedZoneParentDomain,
+      recordName: props.dnsLoadBalancerDomain,
+      values: hostedZoneLoadBalancer.hostedZoneNameServers!,
       ttl: Duration.seconds(172800),
     });
-    dnsNsRecordAppSubDomain.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    nsRecordLoadBalancer.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     // --- container image ---
 
@@ -208,8 +208,8 @@ export class InfrastructureStack extends cdk.Stack {
       },
       cpu: 512, // Default is 256
       desiredCount: 1, // Default is 1
-      domainName: props.dnsSubDomain,
-      domainZone: dnsHostedZoneAppSubDomain,
+      domainName: props.dnsLoadBalancerDomain,
+      domainZone: hostedZoneLoadBalancer,
       memoryLimitMiB: 2048, // Default is 512
       loadBalancerName: `${namePrefix}-lb`,
       propagateTags: PropagatedTagSource.SERVICE,
@@ -225,7 +225,7 @@ export class InfrastructureStack extends cdk.Stack {
 
     // ------- cloudfront distribution  -------
 
-    const lbOriginApp = new HttpOrigin(props.dnsSubDomain, {protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY})
+    const lbOriginApp = new HttpOrigin(props.dnsLoadBalancerDomain, {protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY})
 
     const distributionApp = new Distribution(this, `${id}-distributionApp`, {
       defaultBehavior: { 
