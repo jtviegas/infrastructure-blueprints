@@ -10,7 +10,8 @@ import { ApplicationProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { AccountPrincipal, ArnPrincipal, CompositePrincipal, Effect, ManagedPolicy, Policy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Key, KeySpec, KeyUsage } from 'aws-cdk-lib/aws-kms';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import { HostedZone, NsRecord, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
+import { ARecord, HostedZone, NsRecord, PublicHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import path = require('path');
@@ -29,6 +30,7 @@ export interface SolutionProps extends cdk.StackProps {
   readonly domain: string;
   readonly appImage: string;
   readonly dnsLoadBalancerDomain: string;
+  readonly dnsAppDomain: string;
   readonly dnsParentDomain: string;
 }
 
@@ -131,7 +133,13 @@ export class InfrastructureStack extends cdk.Stack {
     });
     hostedZoneLoadBalancer.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
+    const hostedZoneApp = new PublicHostedZone(this, `${id}-hzApp`, {
+      zoneName: props.dnsAppDomain
+    });
+    hostedZoneApp.applyRemovalPolicy(RemovalPolicy.DESTROY);
+
     const hostedZoneParentDomain = HostedZone.fromLookup(this, `${id}-hzParentDomain`, {domainName: props.dnsParentDomain, privateZone: false});
+    
     const nsRecordLoadBalancer = new NsRecord(this, `${id}-nsRecordLB`, {
       zone: hostedZoneParentDomain,
       recordName: props.dnsLoadBalancerDomain,
@@ -139,6 +147,16 @@ export class InfrastructureStack extends cdk.Stack {
       ttl: Duration.seconds(172800),
     });
     nsRecordLoadBalancer.applyRemovalPolicy(RemovalPolicy.DESTROY);
+
+    const nsRecordApp = new NsRecord(this, `${id}-nsRecordApp`, {
+      zone: hostedZoneParentDomain,
+      recordName: props.dnsAppDomain,
+      values: hostedZoneApp.hostedZoneNameServers!,
+      ttl: Duration.seconds(172800),
+    });
+    nsRecordApp.applyRemovalPolicy(RemovalPolicy.DESTROY);
+
+
 
     // --- container image ---
 
@@ -244,6 +262,12 @@ export class InfrastructureStack extends cdk.Stack {
 
     distributionApp.applyRemovalPolicy(RemovalPolicy.DESTROY);
     new CfnOutput(this, "distributionUrl", { value: `https://${distributionApp.distributionDomainName}` });
+
+    const aRecordApp = new ARecord(this, `${id}-aRecordApp`, {
+      zone: hostedZoneApp,
+      target: RecordTarget.fromAlias(new CloudFrontTarget(distributionApp)),
+    });
+    // aRecordApp.node.addDependency(distributionApp);
 
   }
 }

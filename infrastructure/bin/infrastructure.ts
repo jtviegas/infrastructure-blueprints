@@ -20,6 +20,7 @@ const props: SolutionProps = {
   domain: process.env.DOMAIN!,
   appImage: process.env.APP_IMAGE!,
   dnsLoadBalancerDomain: process.env.DNS_LOADBALANCER_DOMAIN!,
+  dnsAppDomain: process.env.DNS_APP_DOMAIN!,
   dnsParentDomain: process.env.DNS_PARENT_DOMAIN!,
 }
 
