@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+import 'source-map-support/register';
+import * as cdk from 'aws-cdk-lib';
+import { DistributedLoadBalancedFargateServiceStack } from '../lib/solution-stack';
+import { DistributedLoadBalancedFargateServiceProps } from '../lib/infrastructure-props';
+
+const stackName = process.env.INFRA_STACK!
+const app = new cdk.App();
+const environment_ctx = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
+
+const props: DistributedLoadBalancedFargateServiceProps = {
+  env: environment_ctx,
+  tags: {
+    organisation: process.env.ORGANISATION!,
+    domain: process.env.DOMAIN!,
+    solution: process.env.SOLUTION!,
+    environment: environment_ctx["name"]
+  },
+  
+  organisation: process.env.ORGANISATION!,
+  domain: process.env.DOMAIN!,
+  solution: process.env.SOLUTION!,
+  dns: {
+    existingDomain: process.env.DNS_PARENT_DOMAIN!,
+    loadBalancerSubdomain: process.env.DNS_LB_DOMAIN!,
+    appSubdomain: process.env.DNS_APP_DOMAIN!,
+  }
+
+}
+
+
+new DistributedLoadBalancedFargateServiceStack(app, stackName, props);

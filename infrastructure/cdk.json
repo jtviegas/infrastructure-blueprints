@@ -76,15 +76,27 @@
     "@aws-cdk/core:cfnIncludeRejectComplexResourceUpdateCreatePolicyIntrinsics": true,
     "@aws-cdk/aws-lambda-nodejs:sdkV3ExcludeSmithyPackages": true,
     "@aws-cdk/aws-stepfunctions-tasks:fixRunEcsTaskPolicy": true,
-    "environment": {
-      "dev": {
-        "account": "041651352119",
-        "region": "eu-north-1",
-        "name": "dev"
+    "environments": {
+      "solution": {
+        "dev": {
+          "account": "041651352119",
+          "region": "eu-north-1",
+          "name": "dev"
+        },
+        "tst": {},
+        "uat": {},
+        "prd": {}
       },
-      "tst": {},
-      "uat": {},
-      "prd": {}
+      "dns": {
+        "dev": {
+          "account": "041651352119",
+          "region": "us-east-1",
+          "name": "dev"
+        },
+        "tst": {},
+        "uat": {},
+        "prd": {}
+      }
     }
   }
 }

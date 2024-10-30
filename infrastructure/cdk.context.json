@@ -7,5 +7,124 @@
   "hosted-zone:account=041651352119:domainName=jtviegas.com:privateZone=false:region=eu-north-1": {
     "Id": "/hostedzone/Z094156632T0CPYNJNBSO",
     "Name": "jtviegas.com."
+  },
+  "ssm:account=041651352119:parameterName=/streamlit/dev/eu-north-1/streamlitStack-VpcName:region=eu-north-1": "it-streamlit-vpc",
+  "vpc-provider:account=041651352119:filter.tag:Name=it-streamlit-vpc:region=eu-north-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-08774756f12d2d1dc",
+    "vpcCidrBlock": "10.0.0.0/16",
+    "ownerAccountId": "041651352119",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "it-streamlit-publicSubnet",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0dd92b282d15392be",
+            "cidr": "10.0.96.0/19",
+            "availabilityZone": "eu-north-1a",
+            "routeTableId": "rtb-01d80a1b02be3c0c1"
+          },
+          {
+            "subnetId": "subnet-0773fe48b33f6248e",
+            "cidr": "10.0.128.0/19",
+            "availabilityZone": "eu-north-1b",
+            "routeTableId": "rtb-0ed13c02b182a8e00"
+          },
+          {
+            "subnetId": "subnet-03b1fbebd8cc01118",
+            "cidr": "10.0.160.0/19",
+            "availabilityZone": "eu-north-1c",
+            "routeTableId": "rtb-0024659b853589160"
+          }
+        ]
+      },
+      {
+        "name": "it-streamlit-privateSubnet",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-04f376b14555488f1",
+            "cidr": "10.0.0.0/19",
+            "availabilityZone": "eu-north-1a",
+            "routeTableId": "rtb-0f678e3a14aafbd94"
+          },
+          {
+            "subnetId": "subnet-09eb25471f26057a4",
+            "cidr": "10.0.32.0/19",
+            "availabilityZone": "eu-north-1b",
+            "routeTableId": "rtb-0efad97e3cb7293d4"
+          },
+          {
+            "subnetId": "subnet-01ec3ecf8f9554d1e",
+            "cidr": "10.0.64.0/19",
+            "availabilityZone": "eu-north-1c",
+            "routeTableId": "rtb-0fd398a9e7bf34721"
+          }
+        ]
+      }
+    ]
+  },
+  "hosted-zone:account=041651352119:domainName=jtviegas.com:privateZone=false:region=us-east-1": {
+    "Id": "/hostedzone/Z094156632T0CPYNJNBSO",
+    "Name": "jtviegas.com."
+  },
+  "ssm:account=041651352119:parameterName=/streamlit/dev/streamlitStack-VpcName:region=eu-north-1": "it-streamlit-vpc",
+  "ssm:account=041651352119:parameterName=/streamlit/dev/streamlitStack-VpcId:region=eu-north-1": "vpc-09c260b02eea1d05e",
+  "vpc-provider:account=041651352119:filter.tag:Name=it-streamlit-vpc:filter.vpc-id=vpc-09c260b02eea1d05e:region=eu-north-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-09c260b02eea1d05e",
+    "vpcCidrBlock": "10.0.0.0/16",
+    "ownerAccountId": "041651352119",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "it-streamlit-privateSubnet",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-09c31bac2c9fd3ce5",
+            "cidr": "10.0.0.0/19",
+            "availabilityZone": "eu-north-1a",
+            "routeTableId": "rtb-033a860ed8b3a7b4e"
+          },
+          {
+            "subnetId": "subnet-0c1fc43da189111dc",
+            "cidr": "10.0.32.0/19",
+            "availabilityZone": "eu-north-1b",
+            "routeTableId": "rtb-014e24b9f2295a6aa"
+          },
+          {
+            "subnetId": "subnet-01c6d3131343b90e4",
+            "cidr": "10.0.64.0/19",
+            "availabilityZone": "eu-north-1c",
+            "routeTableId": "rtb-0bcee3a766e66e331"
+          }
+        ]
+      },
+      {
+        "name": "it-streamlit-publicSubnet",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-09b7bea4bc1ea0f36",
+            "cidr": "10.0.96.0/19",
+            "availabilityZone": "eu-north-1a",
+            "routeTableId": "rtb-0ec0cdf70bee7db41"
+          },
+          {
+            "subnetId": "subnet-0fe5c40c0b0783dd5",
+            "cidr": "10.0.128.0/19",
+            "availabilityZone": "eu-north-1b",
+            "routeTableId": "rtb-09baab112bb549ff3"
+          },
+          {
+            "subnetId": "subnet-01b416fcfe8361bea",
+            "cidr": "10.0.160.0/19",
+            "availabilityZone": "eu-north-1c",
+            "routeTableId": "rtb-006f147a1c4848346"
+          }
+        ]
+      }
+    ]
   }
 }
