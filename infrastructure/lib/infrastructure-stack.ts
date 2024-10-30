@@ -126,13 +126,13 @@ export class InfrastructureStack extends cdk.Stack {
 
     // --- dns ---
 
-    const hostedZoneLoadBalancer = new PublicHostedZone(this, `${id}-hostedZoneLoadBalancer`, {
+    const hostedZoneLoadBalancer = new PublicHostedZone(this, `${id}-hzLB`, {
       zoneName: props.dnsLoadBalancerDomain
     });
     hostedZoneLoadBalancer.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
-    const hostedZoneParentDomain = HostedZone.fromLookup(this, `${id}-hostedZoneParentDomain`, {domainName: props.dnsParentDomain, privateZone: false});
-    const nsRecordLoadBalancer = new NsRecord(this, `${id}-nsRecordLoadBalancer`, {
+    const hostedZoneParentDomain = HostedZone.fromLookup(this, `${id}-hzParentDomain`, {domainName: props.dnsParentDomain, privateZone: false});
+    const nsRecordLoadBalancer = new NsRecord(this, `${id}-nsRecordLB`, {
       zone: hostedZoneParentDomain,
       recordName: props.dnsLoadBalancerDomain,
       values: hostedZoneLoadBalancer.hostedZoneNameServers!,
