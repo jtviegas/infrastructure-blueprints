@@ -147,6 +147,7 @@ usage() {
         - deps: installs infra code dependencies
         - on: deploys infra
         - off: destroys infra
+        - bootstrap
 
 EOM
   exit 1
@@ -171,7 +172,7 @@ case "$1" in
         ;;
     esac
     ;;
-    infra)
+  infra)
     case "$2" in
       reqs)
         global_infra_reqs
@@ -184,6 +185,9 @@ case "$1" in
         ;;
       off)
         cdk_infra off "$INFRA_DIR"
+        ;;
+      bootstrap)
+        cdk_infra bootstrap "$INFRA_DIR"
         ;;
       *)
         usage
