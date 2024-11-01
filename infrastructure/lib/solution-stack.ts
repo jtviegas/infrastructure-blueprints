@@ -24,31 +24,6 @@ export class SolutionStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: SolutionProps) {
     super(scope, id, props);
 
-    // --- common resources ---
-
-    const kmsKeyArn = Fn.importValue(props.outputKmsKeyArn);
-    const kmsKey = Key.fromKeyArn(this, `${id}-kmsKey`, kmsKeyArn)
-
-    const logGroupArn = Fn.importValue(props.outputLogGroupArn);
-    const logGroup = LogGroup.fromLogGroupArn(this, `${id}-logGroup`, logGroupArn)
-
-    const cfnConfTags = []
-    for (const key in props.tags) {
-      cfnConfTags.push({ key: key, value: props.tags[key] })
-    }
-
-    // --- logs bucket ---
-    const bucketLogsArn = Fn.importValue(props.outputBucketLogsArn);
-    const bucketLogs = Bucket.fromBucketArn(this, `${id}-bucketLogs`, bucketLogsArn)
-
-    // --- solution role ---
-    const roleArn = Fn.importValue(props.outputRoleArn);
-    const role = Role.fromRoleArn(this, `${id}-role`, roleArn)
-
-    // --- network ---
-    const vpcName = StringParameter.valueFromLookup(this, `${props.parameterPrefix}/${props.outputVpcName}`);
-    const vpcId = StringParameter.valueFromLookup(this, `${props.parameterPrefix}/${props.outputVpcId}`);
-    const vpc = Vpc.fromLookup(this, `${id}-vpc`, {vpcName: vpcName, vpcId: vpcId});
 
     // --- container image ---
 
@@ -57,19 +32,19 @@ export class SolutionStack extends cdk.Stack {
       assetName: props.resourceNamePrefix,
       platform: Platform.LINUX_AMD64,
     });
-    containerImageApp.repository.grantPullPush(role)
+    containerImageApp.repository.grantPullPush(props.role)
 
     // --- fargate service ---
 
     const ecsCluster = new Cluster(this, `${id}-ecsCluster`, {
-      vpc: vpc,
+      vpc: props.vpc,
       clusterName: `${props.resourceNamePrefix}-cluster`,
       containerInsights: true,
       enableFargateCapacityProviders: true,
       executeCommandConfiguration: {
-        kmsKey,
+        kmsKey: props.key,
         logConfiguration: {
-          cloudWatchLogGroup: logGroup,
+          cloudWatchLogGroup: props.logGroup,
           cloudWatchEncryptionEnabled: true,
         },
         logging: ExecuteCommandLogging.OVERRIDE,
@@ -77,13 +52,13 @@ export class SolutionStack extends cdk.Stack {
     });
 
     const taskDefinitionApp = new FargateTaskDefinition(this, `${id}-taskDefinitionApp`, {
-      executionRole: role, // grants the ECS agent permission to call AWS APIs
+      executionRole: props.role, // grants the ECS agent permission to call AWS APIs
       family: `${props.solution}-app`,
       runtimePlatform: {
         operatingSystemFamily: OperatingSystemFamily.LINUX,
         cpuArchitecture: CpuArchitecture.X86_64,
       },
-      taskRole: role, // grants containers in the task permission to call AWS APIs,
+      taskRole: props.role, // grants containers in the task permission to call AWS APIs,
     });
 
     taskDefinitionApp.addContainer(`${id}-taskDefinitionContainerApp`, {
@@ -92,7 +67,7 @@ export class SolutionStack extends cdk.Stack {
       logging: LogDrivers.awsLogs({
         streamPrefix: `${props.resourceNamePrefix}-app`,
         mode: AwsLogDriverMode.NON_BLOCKING,
-        logGroup: logGroup,
+        logGroup: props.logGroup,
         maxBufferSize: Size.mebibytes(25),
       }),
       portMappings: [{
@@ -148,7 +123,7 @@ export class SolutionStack extends cdk.Stack {
       certificate: props.appCertificate,
       domainNames: [props.dnsAppDomain],
       enableLogging: true,
-      logBucket: bucketLogs,
+      logBucket: props.bucketLogs,
       logIncludesCookies: true,
       logFilePrefix: `${props.resourceNamePrefix}-cloudfront`,
     });

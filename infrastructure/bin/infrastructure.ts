@@ -56,6 +56,11 @@ const solutionProps: SolutionProps = {
   ...commonProps,
   appCertificate: dnsStack.appCertificate,
   loadBalancerHostedZone: dnsStack.loadBalancerHostedZone,
-  appHostedZone: dnsStack.appHostedZone
+  appHostedZone: dnsStack.appHostedZone,
+  bucketLogs: commonStack.output.bucketLogs,
+  key: commonStack.output.key,
+  logGroup: commonStack.output.logGroup,
+  role: commonStack.output.role,
+  vpc: commonStack.output.vpc
 }
 const solutionStack = new SolutionStack(app, solutionStackName, solutionProps);

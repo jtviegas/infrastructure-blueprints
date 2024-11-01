@@ -8,7 +8,6 @@ import { BaseProps } from './props-stack';
 import path = require('path');
 
 
-
 export class DnsStack extends cdk.Stack {
 
   readonly appCertificate: Certificate;

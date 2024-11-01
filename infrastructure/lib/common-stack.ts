@@ -1,16 +1,26 @@
 import * as cdk from 'aws-cdk-lib';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
-import { SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { IVpc, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { AccountPrincipal, CompositePrincipal, Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import { Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
+import { Bucket, IBucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { CommonProps } from './props-stack';
 import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 
+export interface CommonStackOutput {
+  readonly role: Role;
+  readonly vpc: Vpc;
+  readonly key: Key;
+  readonly bucketLogs: Bucket;
+  readonly logGroup: LogGroup;
+}
+
 export class CommonStack extends cdk.Stack {
+  readonly output: CommonStackOutput;
+
   constructor(scope: Construct, id: string, props: CommonProps) {
     super(scope, id, props);
 
@@ -141,5 +151,12 @@ export class CommonStack extends cdk.Stack {
     }).applyRemovalPolicy(RemovalPolicy.DESTROY);
     new CfnOutput(this, `${id}-outputVpcId`, {value: vpc.vpcId, exportName: props.outputVpcId});
 
+    this.output = {
+      bucketLogs: bucketLogs,
+      key: kmsKey,
+      logGroup: logGroup,
+      role: roleSolution,
+      vpc: vpc
+    }
   }
 }
