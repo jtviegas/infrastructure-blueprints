@@ -79,7 +79,7 @@ export class SolutionStack extends cdk.Stack {
     });
 
     const securityGroupApp = new SecurityGroup(this, `${id}-securityGroupApp`, {
-      vpc: vpc,
+      vpc: props.vpc,
       securityGroupName: `${props.resourceNamePrefix}-sgApp`,
     });
     securityGroupApp.addIngressRule(Peer.prefixList("pl-fab65393"), Port.allTcp(), "allow all tcp ingress from cloudfront distribution")
