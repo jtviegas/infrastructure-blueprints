@@ -30,7 +30,7 @@ jobs:
     #   with:
     #     github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: publish package to npm
-      if: ${{ startsWith(github.ref_name, 'release_') }}
+      # if: ${{ startsWith(github.ref_name, 'release_') }}
       working-directory: "library"
       run: npm run-script publicate
       env:
