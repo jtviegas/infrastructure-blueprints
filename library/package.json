@@ -1,0 +1,31 @@
+{
+  "name": "@jtviegas/cdkblueprints",
+  "version": "0.0.1",
+  "description": "library providing opinionated cdk constructs",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": ["typescript", "library", "cdk"],
+  "author": "joao tiago viegas",
+  "license": "Unlicense",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jtviegas/infrastructure-blueprints"
+  },
+  "bugs": {
+    "url": "https://github.com/jtviegas/infrastructure-blueprints/issues"
+  },
+  "homepage": "https://github.com/jtviegas/infrastructure-blueprints#readme",
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}
