@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { CfnOutput, Fn, RemovalPolicy, Size } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Fn, RemovalPolicy, Size } from 'aws-cdk-lib';
 import { Peer, Port, SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
@@ -96,14 +96,14 @@ export class SolutionStack extends cdk.Stack {
       domainName: props.dnsLoadBalancerDomain,
       domainZone: props.loadBalancerHostedZone,
       enableECSManagedTags: true,
-      // healthCheck: {
-      //   command: [ "CMD-SHELL", "curl -f http://localhost/ || exit 1" ],
-      //   // the properties below are optional
-      //   interval: Duration.minutes(1),
-      //   retries: 3,
-      //   startPeriod: Duration.minutes(1),
-      //   timeout: Duration.seconds(30),
-      // },
+      healthCheck: {
+        command: [ "CMD-SHELL", "curl -f http://localhost/ || exit 1" ],
+        // the properties below are optional
+        interval: Duration.minutes(1),
+        retries: 3,
+        startPeriod: Duration.minutes(1),
+        timeout: Duration.seconds(30),
+      },
       memoryLimitMiB: 2048, // Default is 512
       loadBalancerName: `${props.resourceNamePrefix}-lb`,
       propagateTags: PropagatedTagSource.SERVICE,
