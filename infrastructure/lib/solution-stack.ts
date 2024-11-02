@@ -1,10 +1,10 @@
 import * as cdk from 'aws-cdk-lib';
-import { CfnOutput, Fn, RemovalPolicy, Size } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Fn, RemovalPolicy, Size } from 'aws-cdk-lib';
 import { Peer, Port, SecurityGroup, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
-import { ApplicationProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import { ApplicationProtocol, ApplicationProtocolVersion } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
@@ -21,6 +21,9 @@ import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 
 
 export class SolutionStack extends cdk.Stack {
+
+  readonly CLOUDFRONT_PREFIX_LIST: string = "pl-fab65393";
+
   constructor(scope: Construct, id: string, props: SolutionProps) {
     super(scope, id, props);
 
@@ -74,7 +77,7 @@ export class SolutionStack extends cdk.Stack {
         protocol: Protocol.TCP,
         containerPort: 80,
         appProtocol: AppProtocol.http,
-        name: "app",
+        name: "service",
       }]
     });
 
@@ -82,7 +85,7 @@ export class SolutionStack extends cdk.Stack {
       vpc: props.vpc,
       securityGroupName: `${props.resourceNamePrefix}-sgApp`,
     });
-    securityGroupApp.addIngressRule(Peer.prefixList("pl-fab65393"), Port.allTcp(), "allow all tcp ingress from cloudfront distribution")
+    securityGroupApp.addIngressRule(Peer.prefixList(this.CLOUDFRONT_PREFIX_LIST), Port.allTcp(), "allow all tcp ingress from cloudfront distribution")
 
     const fargateServiceApp = new ApplicationLoadBalancedFargateService(this, `${id}-fargateServiceApp`, {
       assignPublicIp: false,
@@ -95,10 +98,20 @@ export class SolutionStack extends cdk.Stack {
       desiredCount: 1, // Default is 1
       domainName: props.dnsLoadBalancerDomain,
       domainZone: props.loadBalancerHostedZone,
+      enableECSManagedTags: true,
+      healthCheck: {
+        command: [ "CMD-SHELL", "curl -f http://localhost/ || exit 1" ],
+        // the properties below are optional
+        interval: Duration.minutes(1),
+        retries: 3,
+        startPeriod: Duration.minutes(1),
+        timeout: Duration.seconds(30),
+      },
       memoryLimitMiB: 2048, // Default is 512
       loadBalancerName: `${props.resourceNamePrefix}-lb`,
       propagateTags: PropagatedTagSource.SERVICE,
       protocol: ApplicationProtocol.HTTPS,
+      protocolVersion: ApplicationProtocolVersion.HTTP1,
       publicLoadBalancer: true,
       redirectHTTP: true,
       securityGroups: [securityGroupApp],
