@@ -95,6 +95,15 @@ export class SolutionStack extends cdk.Stack {
       desiredCount: 1, // Default is 1
       domainName: props.dnsLoadBalancerDomain,
       domainZone: props.loadBalancerHostedZone,
+      enableECSManagedTags: true,
+      // healthCheck: {
+      //   command: [ "CMD-SHELL", "curl -f http://localhost/ || exit 1" ],
+      //   // the properties below are optional
+      //   interval: Duration.minutes(1),
+      //   retries: 3,
+      //   startPeriod: Duration.minutes(1),
+      //   timeout: Duration.seconds(30),
+      // },
       memoryLimitMiB: 2048, // Default is 512
       loadBalancerName: `${props.resourceNamePrefix}-lb`,
       propagateTags: PropagatedTagSource.SERVICE,
