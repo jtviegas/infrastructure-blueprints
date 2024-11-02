@@ -90,6 +90,7 @@ update_bashutils(){
 # ---------- LOCAL CONSTANTS ----------
 export INFRA_DIR="${this_folder}/infrastructure"
 export APP_DIR="${this_folder}/app"
+export LIB_DIR="${this_folder}/library"
 
 # ---------- LOCAL FUNCTIONS ----------
 global_infra_reqs(){
@@ -142,6 +143,7 @@ usage() {
   $(basename $0) { option }
       options:
       - commands: lists handy commands we use all the time
+      - publish:  publishes package to npm
       - infra: 
         - reqs: install requirements globally required in the sytem for IaC
         - deps: installs infra code dependencies
@@ -171,6 +173,9 @@ case "$1" in
         usage
         ;;
     esac
+    ;;
+  publish)
+    npm_publish "$NPM_REGISTRY" "$NPM_TOKEN" "$LIB_DIR"
     ;;
   infra)
     case "$2" in
