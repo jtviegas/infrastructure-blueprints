@@ -5,7 +5,7 @@ on:
     branches: [ development, release_*, feature_* ]
 
 jobs:
-  build:
+  library:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -26,13 +26,13 @@ jobs:
       working-directory: "library"
       run: npm run coverage
     - name: publish package to npm
-      # if: ${{ startsWith(github.ref_name, 'release_') }}
+      if: ${{ startsWith(github.ref_name, 'release_') }}
       run: ./helper.sh publish
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  test_deploy:
-    name: deploy
+  deploy:
+    needs: library
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
