@@ -131,4 +131,5 @@ dist
 
 .secrets
 .local_variables
+.vscode
 

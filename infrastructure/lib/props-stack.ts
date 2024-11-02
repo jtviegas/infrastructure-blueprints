@@ -1,4 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
+import { Environment } from 'aws-cdk-lib';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Role } from 'aws-cdk-lib/aws-iam';
@@ -6,10 +7,11 @@ import { Key } from 'aws-cdk-lib/aws-kms';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { PublicHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { IStackSynthesizer } from 'aws-cdk-lib';
 
 export interface SysEnv {
   readonly name: string;
-  readonly region?: string;
+  readonly region: string;
   readonly account: string;
 }
 
