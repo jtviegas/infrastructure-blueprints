@@ -100,7 +100,7 @@ export class SolutionStack extends cdk.Stack {
       domainZone: props.loadBalancerHostedZone,
       enableECSManagedTags: true,
       healthCheck: {
-        command: [ "CMD-SHELL", "curl --http2 -f http://localhost/ || exit 1" ],
+        command: [ "CMD-SHELL", "curl -f http://localhost/ || exit 1" ],
         // the properties below are optional
         interval: Duration.minutes(1),
         retries: 3,
@@ -111,7 +111,7 @@ export class SolutionStack extends cdk.Stack {
       loadBalancerName: `${props.resourceNamePrefix}-lb`,
       propagateTags: PropagatedTagSource.SERVICE,
       protocol: ApplicationProtocol.HTTPS,
-      protocolVersion: ApplicationProtocolVersion.HTTP2,
+      protocolVersion: ApplicationProtocolVersion.HTTP1,
       publicLoadBalancer: true,
       redirectHTTP: true,
       securityGroups: [securityGroupApp],
