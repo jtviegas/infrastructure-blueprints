@@ -25,10 +25,6 @@ jobs:
     - name: run tests
       working-directory: "library"
       run: npm run coverage
-    - name: Coveralls
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: publish package to npm
       # if: ${{ startsWith(github.ref_name, 'release_') }}
       run: ./helper.sh publish
