@@ -31,7 +31,6 @@ jobs:
     #     github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: publish package to npm
       # if: ${{ startsWith(github.ref_name, 'release_') }}
-      working-directory: "library"
       run: npm run release
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
