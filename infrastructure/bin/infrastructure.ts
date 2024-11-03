@@ -2,65 +2,85 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { BaseProps, CommonProps, SolutionProps } from '../lib/props-stack';
-import { CommonStack } from '../lib/common-stack';
+
 import { DnsStack } from '../lib/dns-stack';
 import { SolutionStack } from '../lib/solution-stack';
+import { BaseStack, BaseStackProps } from '@jtviegas/cdk-blueprints';
 
 
 const app = new cdk.App();
-const commonStackName = `${process.env.STACK_PREFIX!}-commonStack`
-const solutionEnvironment = ((app.node.tryGetContext("environments"))["solution"])[(process.env.ENVIRONMENT || 'dev')]
-const dnsStackName = `${process.env.STACK_PREFIX!}-dnsStack`
-const dnsEnvironment = ((app.node.tryGetContext("environments"))["dns"])[(process.env.ENVIRONMENT || 'dev')]
-const solutionStackName = `${process.env.STACK_PREFIX!}-solutionStack`
+const baseStackName = `${process.env.STACK_PREFIX!}-baseStack`
+const environment = ((app.node.tryGetContext("environments"))["solution"])[(process.env.ENVIRONMENT || 'dev')]
 
 
-const baseProps: BaseProps = {
+const baseProps: BaseStackProps = {
+  crossRegionReferences: true,
   env: solutionEnvironment,
   tags: {
     organisation: process.env.ORGANISATION!,
-    domain: process.env.DOMAIN!,
+    department: process.env.DEPARTMENT!,
     solution: process.env.SOLUTION!,
     environment: solutionEnvironment["name"]
   },
-  solution: process.env.SOLUTION!,
   organisation: process.env.ORGANISATION!,
-  domain: process.env.DOMAIN!,
-  parameterPrefix: `/${process.env.SOLUTION!}/${solutionEnvironment["name"]}`,
-  resourceNamePrefix: `${process.env.DOMAIN!}-${process.env.SOLUTION!}`,
-  dnsLoadBalancerDomain: process.env.DNS_LOADBALANCER_DOMAIN!,
-  dnsAppDomain: process.env.DNS_APP_DOMAIN!,
-  dnsParentDomain: process.env.DNS_PARENT_DOMAIN!,
-  crossRegionReferences: true
+  department: process.env.DEPARTMENT!,
+  solution: process.env.SOLUTION!,
+  logsBucket: true,
 }
 
-const commonProps: CommonProps = {
-  ...baseProps,
-  outputKmsKeyArn: process.env.OUTPUT_KMSKEY_ARN!,
-  outputLogGroupArn: process.env.OUTPUT_LOGGROUP_ARN!,
-  outputBucketLogsArn: process.env.OUTPUT_BUCKETLOGS_ARN!,
-  outputRoleArn: process.env.OUTPUT_ROLE_ARN!,
-  outputVpcName: process.env.OUTPUT_VPC_NAME!,
-  outputVpcId: process.env.OUTPUT_VPC_ID!,
-}
+const baseStack = new BaseStack(app, baseStackName, baseProps);
 
 const dnsProps: BaseProps = {
-  ...baseProps,
-  env: dnsEnvironment,
-}
+    ...baseProps,
+    env: dnsEnvironment,
+  }
 
-const commonStack = new CommonStack(app, commonStackName, commonProps);
-const dnsStack = new DnsStack(app, dnsStackName, dnsProps);
+// const baseProps: BaseProps = {
+//   env: solutionEnvironment,
+//   tags: {
+//     organisation: process.env.ORGANISATION!,
+//     domain: process.env.DOMAIN!,
+//     solution: process.env.SOLUTION!,
+//     environment: solutionEnvironment["name"]
+//   },
+//   solution: process.env.SOLUTION!,
+//   organisation: process.env.ORGANISATION!,
+//   domain: process.env.DOMAIN!,
+//   parameterPrefix: `/${process.env.SOLUTION!}/${solutionEnvironment["name"]}`,
+//   resourceNamePrefix: `${process.env.DOMAIN!}-${process.env.SOLUTION!}`,
+//   dnsLoadBalancerDomain: process.env.DNS_LOADBALANCER_DOMAIN!,
+//   dnsAppDomain: process.env.DNS_APP_DOMAIN!,
+//   dnsParentDomain: process.env.DNS_PARENT_DOMAIN!,
+//   crossRegionReferences: true
+// }
 
-const solutionProps: SolutionProps = {
-  ...commonProps,
-  appCertificate: dnsStack.appCertificate,
-  loadBalancerHostedZone: dnsStack.loadBalancerHostedZone,
-  appHostedZone: dnsStack.appHostedZone,
-  bucketLogs: commonStack.output.bucketLogs,
-  key: commonStack.output.key,
-  logGroup: commonStack.output.logGroup,
-  role: commonStack.output.role,
-  vpc: commonStack.output.vpc
-}
-const solutionStack = new SolutionStack(app, solutionStackName, solutionProps);
+// const commonProps: CommonProps = {
+//   ...baseProps,
+//   outputKmsKeyArn: process.env.OUTPUT_KMSKEY_ARN!,
+//   outputLogGroupArn: process.env.OUTPUT_LOGGROUP_ARN!,
+//   outputBucketLogsArn: process.env.OUTPUT_BUCKETLOGS_ARN!,
+//   outputRoleArn: process.env.OUTPUT_ROLE_ARN!,
+//   outputVpcName: process.env.OUTPUT_VPC_NAME!,
+//   outputVpcId: process.env.OUTPUT_VPC_ID!,
+// }
+
+// const dnsProps: BaseProps = {
+//   ...baseProps,
+//   env: dnsEnvironment,
+// }
+
+// const commonStack = new CommonStack(app, commonStackName, commonProps);
+// const dnsStack = new DnsStack(app, dnsStackName, dnsProps);
+
+// const solutionProps: SolutionProps = {
+//   ...commonProps,
+//   appCertificate: dnsStack.appCertificate,
+//   loadBalancerHostedZone: dnsStack.loadBalancerHostedZone,
+//   appHostedZone: dnsStack.appHostedZone,
+//   bucketLogs: commonStack.output.bucketLogs,
+//   key: commonStack.output.key,
+//   logGroup: commonStack.output.logGroup,
+//   role: commonStack.output.role,
+//   vpc: commonStack.output.vpc
+// }
+// const solutionStack = new SolutionStack(app, solutionStackName, solutionProps);

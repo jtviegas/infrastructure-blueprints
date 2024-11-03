@@ -136,6 +136,54 @@ generate_certificate_assets(){
   info "[generate_certificate_assets|out] => ${result}"
 }
 
+lib_test(){
+  info "[lib_test|in] ({$1})"
+
+  [ -z "$1" ] && usage
+  _dir="$1"
+  _pwd=`pwd`
+  cd "$_dir"
+
+  npm run test
+
+  result="$?"
+  cd "$_pwd"
+  [ "$result" -ne "0" ] && err "[lib_test|out]  => ${result}" && exit 1
+  info "[lib_test|out] => ${result}"
+}
+
+lib_deps(){
+  info "[lib_deps|in] ({$1})"
+
+  [ -z "$1" ] && usage
+  _dir="$1"
+  _pwd=`pwd`
+  cd "$_dir"
+
+  npm ci
+
+  result="$?"
+  cd "$_pwd"
+  [ "$result" -ne "0" ] && err "[lib_deps|out]  => ${result}" && exit 1
+  info "[lib_deps|out] => ${result}"
+}
+
+lib_build(){
+  info "[lib_build|in] ({$1})"
+
+  [ -z "$1" ] && usage
+  _dir="$1"
+  _pwd=`pwd`
+  cd "$_dir"
+
+  npm run build
+
+  result="$?"
+  cd "$_pwd"
+  [ "$result" -ne "0" ] && err "[lib_build|out]  => ${result}" && exit 1
+  info "[lib_build|out] => ${result}"
+}
+
 # -------------------------------------
 usage() {
   cat <<EOM
@@ -143,7 +191,11 @@ usage() {
   $(basename $0) { option }
       options:
       - commands: lists handy commands we use all the time
-      - publish:  publishes package to npm
+      - lib:
+        - publish:  publishes package to npm
+        - test:     run library tests
+        - deps:     install lib dependencies
+        - build:    build/compile lib code
       - infra: 
         - reqs: install requirements globally required in the sytem for IaC
         - deps: installs infra code dependencies
@@ -174,8 +226,24 @@ case "$1" in
         ;;
     esac
     ;;
-  publish)
-    npm_publish "$NPM_REGISTRY" "$NPM_TOKEN" "$LIB_DIR"
+  lib)
+    case "$2" in
+      build)
+        lib_build "$LIB_DIR"
+        ;;
+      deps)
+        lib_deps "$LIB_DIR"
+        ;;
+      test)
+        lib_test "$LIB_DIR"
+        ;;
+      publish)
+        npm_publish "$NPM_REGISTRY" "$NPM_TOKEN" "$LIB_DIR"
+        ;;
+      *)
+        usage
+        ;;
+    esac
     ;;
   infra)
     case "$2" in

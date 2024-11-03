@@ -1,3 +1,6 @@
+import { DnsStack } from "./stacks/distributedLoadBalancedCustomDomainServer/dns";
+import { SolutionStack } from "./stacks/distributedLoadBalancedCustomDomainServer/solution";
+
 export { SysEnv
   , CommonStackProps 
   , deriveParameterPrefix
@@ -11,6 +14,8 @@ export { VpcSpec
   , BaseStackProps
   , BaseStack
  } from "./stacks/base"
+
+export {SolutionStack, SolutionStackProps} from "./stacks/distributedLoadBalancedCustomDomainServer/solution"
 
 export function removeNonTextChars(str: string): string {
   return str.replace(/[^a-zA-Z0-9\s]/g, '');

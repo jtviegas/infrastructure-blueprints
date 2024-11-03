@@ -17,8 +17,8 @@ export interface VpcSpec {
 }
 
 export interface BaseStackProps extends CommonStackProps {
-  readonly logsBucket: boolean;
-  readonly vpc?: VpcSpec;
+  readonly logsBucketOn: boolean;
+  readonly vpcSpec?: VpcSpec;
 }
 
 export class BaseStack extends cdk.Stack {
@@ -62,7 +62,7 @@ export class BaseStack extends cdk.Stack {
     
 
     // --- logs bucket ---
-    if (props.logsBucket){
+    if (props.logsBucketOn){
       this.logsBucket = new Bucket(this, `${id}-bucketLogs`, {
         bucketName: deriveResourceName(props, "base", "logs"),
         versioned: false, 
@@ -136,7 +136,7 @@ export class BaseStack extends cdk.Stack {
 
     // --- vpc ---
 
-    if (props.vpc === undefined){
+    if (props.vpcSpec === undefined){
       this.vpc = new Vpc(this, `${id}-vpc`, {
         vpcName: deriveResourceName(props, "base"),
         subnetConfiguration: [
@@ -153,19 +153,19 @@ export class BaseStack extends cdk.Stack {
     }
     else {
       this.vpc = Vpc.fromLookup(this, `${id}-vpc`, {
-        vpcId: props.vpc.id,
-        vpcName: props.vpc.name
+        vpcId: props.vpcSpec.id,
+        vpcName: props.vpcSpec.name
       })
     }
 
     new StringParameter(this, `${id}-paramVpcName`, {
       parameterName: deriveParameter(props, "BaseVpcName"),
-      stringValue: props.vpc === undefined ? deriveResourceName(props, "base"): props.vpc.name,
+      stringValue: props.vpcSpec === undefined ? deriveResourceName(props, "base"): props.vpcSpec.name,
       tier: ParameterTier.STANDARD,
       dataType: ParameterDataType.TEXT
     }).applyRemovalPolicy(RemovalPolicy.DESTROY);
     new CfnOutput(this, `${id}-outputVpcName`, {
-      value: props.vpc === undefined ? deriveResourceName(props, "base"): props.vpc.name, 
+      value: props.vpcSpec === undefined ? deriveResourceName(props, "base"): props.vpcSpec.name, 
       exportName: deriveOutput(props, "BaseVpcName")});
 
     new StringParameter(this, `${id}-paramVpcId`, {

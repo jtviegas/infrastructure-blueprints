@@ -17,14 +17,11 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - name: install dependencies
-      working-directory: "library"
-      run: npm ci
+      run: ./helper.sh lib deps
     - name: build code
-      working-directory: "library"
-      run: npm run build
+      run: ./helper.sh lib build
     - name: run tests
-      working-directory: "library"
-      run: npm run coverage
+      run: ./helper.sh lib test
     - name: publish package to npm
       # if: ${{ startsWith(github.ref_name, 'release_') }}
       run: ./helper.sh publish

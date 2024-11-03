@@ -9,13 +9,13 @@ export interface SysEnv {
 
 export interface CommonStackProps extends StackProps {
   readonly env: SysEnv;
-  readonly solution: string;
   readonly organisation: string;
   readonly department: string;
+  readonly solution: string;
 }
 
 export const deriveParameterPrefix = (props: CommonStackProps): string => {
-  return `${props.solution}/${props.env.name}`
+  return `/${props.solution}/${props.env.name}`
 }
 
 export const deriveParameter = (props: CommonStackProps, name: string): string => {
@@ -37,9 +37,14 @@ export const deriveAffix = (props: CommonStackProps): string => {
   return `${solution}${env}${region}`
 }
 
+export const deriveResourceAffix = (props: CommonStackProps): string => {
+  const region = removeNonTextChars(props.env.region)
+  return `${props.solution}-${props.env.name}-${region}`
+}
+
 export const deriveResourceName = (props: CommonStackProps, name: string, surname: string = ""): string => {
-  const affix = deriveAffix(props);
-  return `${affix}${capitalizeFirstLetter(name)}${capitalizeFirstLetter(surname)}`
+  const affix = deriveResourceAffix(props);
+  return `${affix}-${name}${surname? "-" + surname : ""}`
 }
 
 
