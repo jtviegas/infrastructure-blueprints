@@ -8,20 +8,10 @@ import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { PublicHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { IStackSynthesizer } from 'aws-cdk-lib';
+import { BaseStackProperties, SysEnv } from '@jtviegas/cdk-blueprints';
 
-export interface SysEnv {
-  readonly name: string;
-  readonly region: string;
-  readonly account: string;
-}
 
-export interface BaseProps extends cdk.StackProps {
-  readonly env: SysEnv;
-  readonly solution: string;
-  readonly organisation: string;
-  readonly domain: string;
-  readonly parameterPrefix: string;
-  readonly resourceNamePrefix: string;
+export interface BaseProps extends BaseStackProperties {
   readonly dnsLoadBalancerDomain: string;
   readonly dnsAppDomain: string;
   readonly dnsParentDomain: string;
@@ -37,7 +27,6 @@ export interface CommonProps extends BaseProps {
 }
 
 export interface SolutionProps extends CommonProps {
-
   readonly appCertificate: Certificate;
   readonly loadBalancerHostedZone: PublicHostedZone;
   readonly appHostedZone: PublicHostedZone;
@@ -46,5 +35,4 @@ export interface SolutionProps extends CommonProps {
   readonly logGroup: LogGroup;
   readonly key: Key;
   readonly role: Role;
-
 }
