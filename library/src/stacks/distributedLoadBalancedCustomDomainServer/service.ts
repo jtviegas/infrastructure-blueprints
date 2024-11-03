@@ -117,7 +117,7 @@ export class ServiceStack extends Stack {
         timeout: Duration.seconds(30),
       },
       memoryLimitMiB: 2048, 
-      loadBalancerName: deriveResourceName(props, "loadBalancer"),
+      loadBalancerName: deriveResourceName(props, "lb"),
       propagateTags: PropagatedTagSource.SERVICE,
       protocol: ApplicationProtocol.HTTPS,
       protocolVersion: ApplicationProtocolVersion.HTTP1,
