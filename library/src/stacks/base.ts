@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
+import { CfnOutput, NestedStack, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { IVpc, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { AccountPrincipal, CompositePrincipal, Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Key } from 'aws-cdk-lib/aws-kms';
@@ -21,7 +21,7 @@ export interface BaseStackProps extends CommonStackProps {
   readonly vpcSpec?: VpcSpec;
 }
 
-export class BaseStack extends cdk.Stack {
+export class BaseStack extends Stack {
 
   readonly key: Key;
   readonly logGroup: LogGroup;

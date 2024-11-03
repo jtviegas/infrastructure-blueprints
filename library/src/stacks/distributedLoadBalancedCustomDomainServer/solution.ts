@@ -24,6 +24,7 @@ export class SolutionStack extends Stack {
     const baseStack = new BaseStack(this, `${id}-baseStack`, baseProps);
     const dnsStack = new DnsStack(this, `${id}-dnsStack`, props);
 
+
     const serviceProps: ServiceStackProps = {
       ...props,
       role: baseStack.role,
@@ -36,6 +37,7 @@ export class SolutionStack extends Stack {
       certificateDistribution: dnsStack.certificateSrv
     }
     const serviceStack = new ServiceStack(this, `${id}-serviceStack`, serviceProps);
+    serviceStack.node.addDependency([baseStack, dnsStack]);
   }
 
 

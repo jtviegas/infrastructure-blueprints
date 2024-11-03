@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { Duration, RemovalPolicy } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { HostedZone, NsRecord, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
@@ -12,7 +12,7 @@ export interface DnsStackProps extends CommonStackProps {
   readonly parentDomain: string;
 }
 
-export class DnsStack extends cdk.Stack {
+export class DnsStack extends Stack {
 
   readonly certificateSrv: Certificate;
   readonly hostedZoneLoadBalancer: PublicHostedZone;
