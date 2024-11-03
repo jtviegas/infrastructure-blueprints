@@ -24,7 +24,7 @@ jobs:
       run: ./helper.sh lib test
     - name: publish package to npm
       # if: ${{ startsWith(github.ref_name, 'release_') }}
-      run: ./helper.sh publish
+      run: ./helper.sh lib publish
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
