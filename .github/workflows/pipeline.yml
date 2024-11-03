@@ -26,7 +26,7 @@ jobs:
       working-directory: "library"
       run: npm run coverage
     - name: publish package to npm
-      if: ${{ startsWith(github.ref_name, 'release_') }}
+      # if: ${{ startsWith(github.ref_name, 'release_') }}
       run: ./helper.sh publish
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -34,6 +34,7 @@ jobs:
   deploy:
     needs: library
     runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref_name, 'release_') }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
