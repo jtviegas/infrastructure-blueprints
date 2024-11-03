@@ -14,7 +14,6 @@ export interface SolutionStackProps extends CommonStackProps {
   readonly dockerfileDir: string;
 }
 
-
 export class SolutionStack extends Stack {
 
   constructor(scope: Construct, id: string, props: SolutionStackProps) {
@@ -23,7 +22,6 @@ export class SolutionStack extends Stack {
     const baseProps: BaseStackProps = { ...props, logsBucketOn: true }
     const baseStack = new BaseStack(this, `${id}-baseStack`, baseProps);
     const dnsStack = new DnsStack(this, `${id}-dnsStack`, props);
-
 
     const serviceProps: ServiceStackProps = {
       ...props,
