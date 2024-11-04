@@ -46,7 +46,7 @@ jobs:
   service:
     needs: library
     runs-on: ubuntu-latest
-    # if: ${{ startsWith(github.ref_name, 'release_infra_') }}
+    if: ${{ startsWith(github.ref_name, 'release_infra_') }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
