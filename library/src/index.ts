@@ -1,5 +1,7 @@
+import { FromCloudFormation } from "aws-cdk-lib/core/lib/helpers-internal";
 import { DnsStack } from "./stacks/distributedLoadBalancedCustomDomainServer/dns";
 import { SolutionStack } from "./stacks/distributedLoadBalancedCustomDomainServer/solution";
+import { SubdomainsStack } from "./stacks/subdomains";
 
 export { SysEnv
   , CommonStackProps 
@@ -25,6 +27,7 @@ export function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+export {SubdomainsStack, SubdomainsStackProps, SubdomainSpec} from "./stacks/subdomains"
 
 
 

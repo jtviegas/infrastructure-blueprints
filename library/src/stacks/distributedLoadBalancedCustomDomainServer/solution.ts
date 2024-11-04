@@ -35,7 +35,6 @@ export class SolutionStack extends Stack {
       certificateDistribution: dnsStack.certificateSrv
     }
     const serviceStack = new ServiceStack(this, `${id}-serviceStack`, serviceProps);
-    serviceStack.node.addDependency([baseStack.logsBucket]);
   }
 
 

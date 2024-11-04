@@ -21,6 +21,7 @@ const props: SolutionStackProps = {
   department: process.env.DEPARTMENT!,
   solution: process.env.SOLUTION!,
   stackName: stackName,
+  
   domainLoadBalancer: process.env.DNS_LOADBALANCER_DOMAIN!,
   domainDistribution: process.env.DNS_APP_DOMAIN!,
   parentDomain: process.env.DNS_PARENT_DOMAIN!,
