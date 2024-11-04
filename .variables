@@ -20,6 +20,6 @@ export DNS_PARENT_DOMAIN="jtviegas.com"
 
 
 export STACK_PREFIX="${ORGANISATION}${DOMAIN}${SOLUTION}${ENVIRONMENT}"
-export STACK_SUBDOMAINS="${STACK_PREFIX}-suddomains"
+export STACK_SUBDOMAINS="${STACK_PREFIX}-subdomains"
 export STACK_SERVICE="${STACK_PREFIX}-service"
 

@@ -202,7 +202,9 @@ usage() {
         - on: deploys infra
         - off: destroys infra
         - bootstrap
-
+      - infra_domains: 
+        - on: deploys dns subdomains infra
+        - off: destroys subdomains infra
 EOM
   exit 1
 }
