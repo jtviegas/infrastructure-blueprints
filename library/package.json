@@ -1,6 +1,6 @@
 {
   "name": "@jtviegas/cdk-blueprints",
-  "version": "0.0.9",
+  "version": "0.0.22",
   "description": "library providing opinionated cdk constructs",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -30,7 +30,7 @@
   "license": "Unlicense",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jtviegas/infrastructure-blueprints"
+    "url": "git+https://github.com/jtviegas/infrastructure-blueprints.git"
   },
   "bugs": {
     "url": "https://github.com/jtviegas/infrastructure-blueprints/issues"

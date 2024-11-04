@@ -254,13 +254,26 @@ case "$1" in
         npm_deps "$INFRA_DIR"
         ;;
       on)
-        cdk_infra on "$INFRA_DIR"
+        cdk_infra on "$INFRA_DIR" "$STACK_SERVICE"
         ;;
       off)
-        cdk_infra off "$INFRA_DIR"
+        cdk_infra off "$INFRA_DIR" "$STACK_SERVICE"
         ;;
       bootstrap)
         cdk_infra bootstrap "$INFRA_DIR"
+        ;;
+      *)
+        usage
+        ;;
+    esac
+    ;;
+  infra_domains)
+    case "$2" in
+      on)
+        cdk_infra on "$INFRA_DIR" "$STACK_SUBDOMAINS"
+        ;;
+      off)
+        cdk_infra off "$INFRA_DIR" "$STACK_SUBDOMAINS"
         ;;
       *)
         usage

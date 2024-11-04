@@ -3,26 +3,28 @@ import { Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { HostedZone, NsRecord, PrivateHostedZone, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
-import { CommonStackProps, deriveOutput, deriveParameter } from '../constructs/commons';
+import { CommonStackProps, deriveOutput, deriveParameter } from '../commons/utils';
 import { removeNonTextChars } from '..';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { DNS_RESOURCES_REGION } from '../commons/constants';
 
 
 export interface SubdomainSpec {
-  name: string;
-  private?: boolean;
-  createCertificate?: boolean;
-  vpc?: {
-    name: string;
-    id: string;
+  readonly name: string;
+  readonly private?: boolean;
+  readonly createCertificate?: boolean;
+  readonly vpc?: {
+    readonly name: string;
+    readonly id: string;
   }
 }
+
 export interface SubdomainsStackProps extends CommonStackProps {
   readonly subdomains: SubdomainSpec[];
   readonly domain: {
-    name: string;
-    private?: boolean;
+    readonly name: string;
+    readonly private?: boolean;
   }
 }
 
@@ -31,7 +33,7 @@ export class SubdomainsStack extends Stack {
 
 
   constructor(scope: Construct, id: string, props: SubdomainsStackProps) {
-    super(scope, id, { ...props, env: { ...props.env, region: "us-east-1" } });
+    super(scope, id, { ...props, env: { ...props.env, region: DNS_RESOURCES_REGION } });
 
     if ((props.crossRegionReferences === undefined) || (props.crossRegionReferences === false)){
       throw new Error("please allow crossRegionReferences")

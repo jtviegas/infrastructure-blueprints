@@ -7,21 +7,18 @@ import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
-import { CommonStackProps, deriveOutput, deriveParameter, deriveParameterPrefix, deriveResourceName } from '../constructs/commons';
+import { CommonStackProps, deriveOutput, deriveParameter, deriveParameterPrefix, deriveResourceName } from '../commons/utils';
 
 
-
-export interface VpcSpec {
-  readonly id: string;
-  readonly name: string;
-}
-
-export interface BaseStackProps extends CommonStackProps {
+export interface BaseConstructsProps extends CommonStackProps {
   readonly logsBucketOn: boolean;
-  readonly vpcSpec?: VpcSpec;
+  readonly vpcSpec?: {
+    readonly id: string;
+    readonly name: string;
+  };
 }
 
-export class BaseStack extends Stack {
+export class BaseConstructs extends Construct {
 
   readonly key: Key;
   readonly logGroup: LogGroup;
@@ -29,22 +26,20 @@ export class BaseStack extends Stack {
   readonly role: Role;
   readonly vpc: IVpc;
 
-  constructor(scope: Construct, id: string, props: BaseStackProps) {
-    super(scope, id, props);
-
-    // --- common resources ---
+  constructor(scope: Construct, id: string, props: BaseConstructsProps) {
+    super(scope, id);
 
     // --- kms key ---
     this.key = new Key(this, `${id}-key`, {
       enableKeyRotation: true,
     });
-    new StringParameter(this, `${id}-paramKeyArn`, {
-      parameterName: deriveParameter(props, "BaseKeyArn"),
-      stringValue: this.key.keyArn,
-      tier: ParameterTier.STANDARD,
-      dataType: ParameterDataType.TEXT
-    }).applyRemovalPolicy(RemovalPolicy.DESTROY);
-    new CfnOutput(this, `${id}-outputBaseKeyArn`, {value: this.key.keyArn, exportName: deriveOutput(props, "BaseKeyArn")});
+    // new StringParameter(this, `${id}-paramKeyArn`, {
+    //   parameterName: deriveParameter(props, "BaseKeyArn"),
+    //   stringValue: this.key.keyArn,
+    //   tier: ParameterTier.STANDARD,
+    //   dataType: ParameterDataType.TEXT
+    // }).applyRemovalPolicy(RemovalPolicy.DESTROY);
+    // new CfnOutput(this, `${id}-outputBaseKeyArn`, {value: this.key.keyArn, exportName: deriveOutput(props, "BaseKeyArn")});
 
     // --- logGroup ---
     this.logGroup = new LogGroup(this, `${id}-logGroup`, 
@@ -52,13 +47,13 @@ export class BaseStack extends Stack {
         logGroupName: deriveResourceName(props, "base"), 
         removalPolicy: RemovalPolicy.DESTROY,
     });
-    new StringParameter(this, `${id}-paramLogGroupArn`, {
-      parameterName: deriveParameter(props, "BaseLogGroupArn"),
-      stringValue: this.logGroup.logGroupArn,
-      tier: ParameterTier.STANDARD,
-      dataType: ParameterDataType.TEXT
-    }).applyRemovalPolicy(RemovalPolicy.DESTROY);
-    new CfnOutput(this, `${id}-outputLogGroupArn`, {value: this.logGroup.logGroupArn, exportName: deriveOutput(props, "BaseLogGroupArn")});
+    // new StringParameter(this, `${id}-paramLogGroupArn`, {
+    //   parameterName: deriveParameter(props, "BaseLogGroupArn"),
+    //   stringValue: this.logGroup.logGroupArn,
+    //   tier: ParameterTier.STANDARD,
+    //   dataType: ParameterDataType.TEXT
+    // }).applyRemovalPolicy(RemovalPolicy.DESTROY);
+    // new CfnOutput(this, `${id}-outputLogGroupArn`, {value: this.logGroup.logGroupArn, exportName: deriveOutput(props, "BaseLogGroupArn")});
     
 
     // --- logs bucket ---
@@ -75,13 +70,13 @@ export class BaseStack extends Stack {
         ],
         objectOwnership: ObjectOwnership.OBJECT_WRITER,
       });
-      new StringParameter(this, `${id}-paramBucketLogsArn`, {
-        parameterName: deriveParameter(props, "BaseBucketLogsArn"),
-        stringValue: this.logsBucket.bucketArn,
-        tier: ParameterTier.STANDARD,
-        dataType: ParameterDataType.TEXT
-      }).applyRemovalPolicy(RemovalPolicy.DESTROY);
-      new CfnOutput(this, `${id}-outputBucketLogsArn`, {value: this.logsBucket.bucketArn, exportName: deriveOutput(props, "BaseBucketLogsArn")});
+      // new StringParameter(this, `${id}-paramBucketLogsArn`, {
+      //   parameterName: deriveParameter(props, "BaseBucketLogsArn"),
+      //   stringValue: this.logsBucket.bucketArn,
+      //   tier: ParameterTier.STANDARD,
+      //   dataType: ParameterDataType.TEXT
+      // }).applyRemovalPolicy(RemovalPolicy.DESTROY);
+      // new CfnOutput(this, `${id}-outputBucketLogsArn`, {value: this.logsBucket.bucketArn, exportName: deriveOutput(props, "BaseBucketLogsArn")});
     }
 
 
@@ -125,13 +120,13 @@ export class BaseStack extends Stack {
         resources: [`arn:aws:ssm:*:*:parameter${deriveParameterPrefix(props)}/*`],
       }));
     
-    new StringParameter(this, `${id}-paramRoleArn`, {
-      parameterName: deriveParameter(props, "BaseRoleArn"),
-      stringValue: this.role.roleArn,
-      tier: ParameterTier.STANDARD,
-      dataType: ParameterDataType.TEXT
-    }).applyRemovalPolicy(RemovalPolicy.DESTROY);
-    new CfnOutput(this, `${id}-outputRole`, {value: this.role.roleArn, exportName: deriveOutput(props, "BaseRoleArn")});
+    // new StringParameter(this, `${id}-paramRoleArn`, {
+    //   parameterName: deriveParameter(props, "BaseRoleArn"),
+    //   stringValue: this.role.roleArn,
+    //   tier: ParameterTier.STANDARD,
+    //   dataType: ParameterDataType.TEXT
+    // }).applyRemovalPolicy(RemovalPolicy.DESTROY);
+    // new CfnOutput(this, `${id}-outputRole`, {value: this.role.roleArn, exportName: deriveOutput(props, "BaseRoleArn")});
 
 
     // --- vpc ---
@@ -158,24 +153,24 @@ export class BaseStack extends Stack {
       })
     }
 
-    new StringParameter(this, `${id}-paramVpcName`, {
-      parameterName: deriveParameter(props, "BaseVpcName"),
-      stringValue: props.vpcSpec === undefined ? deriveResourceName(props, "base"): props.vpcSpec.name,
-      tier: ParameterTier.STANDARD,
-      dataType: ParameterDataType.TEXT
-    }).applyRemovalPolicy(RemovalPolicy.DESTROY);
-    new CfnOutput(this, `${id}-outputVpcName`, {
-      value: props.vpcSpec === undefined ? deriveResourceName(props, "base"): props.vpcSpec.name, 
-      exportName: deriveOutput(props, "BaseVpcName")});
+    // new StringParameter(this, `${id}-paramVpcName`, {
+    //   parameterName: deriveParameter(props, "BaseVpcName"),
+    //   stringValue: props.vpcSpec === undefined ? deriveResourceName(props, "base"): props.vpcSpec.name,
+    //   tier: ParameterTier.STANDARD,
+    //   dataType: ParameterDataType.TEXT
+    // }).applyRemovalPolicy(RemovalPolicy.DESTROY);
+    // new CfnOutput(this, `${id}-outputVpcName`, {
+    //   value: props.vpcSpec === undefined ? deriveResourceName(props, "base"): props.vpcSpec.name, 
+    //   exportName: deriveOutput(props, "BaseVpcName")});
 
-    new StringParameter(this, `${id}-paramVpcId`, {
-      parameterName: deriveParameter(props, "BaseVpcId"),
-      stringValue: this.vpc.vpcId,
-      tier: ParameterTier.STANDARD,
-      dataType: ParameterDataType.TEXT
-    }).applyRemovalPolicy(RemovalPolicy.DESTROY);
-    new CfnOutput(this, `${id}-outputVpcId`, {
-      value: this.vpc.vpcId, 
-      exportName: deriveOutput(props, "BaseVpcId")});
+    // new StringParameter(this, `${id}-paramVpcId`, {
+    //   parameterName: deriveParameter(props, "BaseVpcId"),
+    //   stringValue: this.vpc.vpcId,
+    //   tier: ParameterTier.STANDARD,
+    //   dataType: ParameterDataType.TEXT
+    // }).applyRemovalPolicy(RemovalPolicy.DESTROY);
+    // new CfnOutput(this, `${id}-outputVpcId`, {
+    //   value: this.vpc.vpcId, 
+    //   exportName: deriveOutput(props, "BaseVpcId")});
   }
 }
