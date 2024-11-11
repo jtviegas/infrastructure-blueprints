@@ -11,10 +11,8 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "coverage": "vitest run --coverage",
-    "release": "./helper.sh publish"
+    "test": "vitest run --coverage",
+    "test:watch": "vitest"
   },
   "jest": {
     "moduleFileExtensions": [

@@ -10,10 +10,20 @@ export function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+export interface VpcLookupAttributes {
+  readonly vpcId: string;
+  readonly vpcName: string;
+}
+
 export interface SysEnv {
   readonly name: string;
   readonly region: string;
   readonly account: string;
+  readonly domain?: {
+    name: string;
+    private: boolean;
+  },
+  readonly vpc?: VpcLookupAttributes;
 }
 
 export interface CommonStackProps extends StackProps {
@@ -28,15 +38,13 @@ export const deriveParameterPrefix = (props: CommonStackProps): string => {
 }
 
 export const deriveParameter = (props: CommonStackProps, name: string): string => {
-  const region = removeNonTextChars(props.env.region);
   const key = removeNonTextChars(name);
-  return `${deriveParameterPrefix(props)}/${region}/${key}`
+  return `${deriveParameterPrefix(props)}/${key}`
 }
 
 export const deriveOutput = (props: CommonStackProps, name: string): string => {
-  const region = removeNonTextChars(props.env.region);
   const key = removeNonTextChars(name);
-  return `${props.solution}-${props.env.name}-${region}-${key}`
+  return `${props.solution}-${props.env.name}-${key}`
 }
 
 export const deriveAffix = (props: CommonStackProps): string => {

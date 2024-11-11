@@ -1,10 +1,10 @@
 import * as cdk from 'aws-cdk-lib';
 import { Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
-import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
-import { HostedZone, NsRecord, PrivateHostedZone, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
+import { Certificate, CertificateProps, CertificateValidation, ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { HostedZone, IHostedZone, NsRecord, PrivateHostedZone, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
 import { CommonStackProps, deriveOutput, deriveParameter } from '../commons/utils';
-import { removeNonTextChars } from '..';
+import { removeNonTextChars, VpcLookupAttributes } from '..';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { DNS_RESOURCES_REGION } from '../commons/constants';
@@ -14,13 +14,10 @@ export interface SubdomainSpec {
   readonly name: string;
   readonly private?: boolean;
   readonly createCertificate?: boolean;
-  readonly vpc?: {
-    readonly name: string;
-    readonly id: string;
-  }
+  readonly vpc?: VpcLookupAttributes
 }
 
-export interface SubdomainsStackProps extends CommonStackProps {
+export interface SubdomainsProps extends CommonStackProps {
   readonly subdomains: SubdomainSpec[];
   readonly domain: {
     readonly name: string;
@@ -28,18 +25,26 @@ export interface SubdomainsStackProps extends CommonStackProps {
   }
 }
 
+export interface ISubdomains {
+  readonly hostedZoneDomain: IHostedZone;
+  readonly hostedZoneSubdomains: IHostedZone[]; 
+}
 
-export class SubdomainsStack extends Stack {
+export class Subdomains extends Construct implements ISubdomains {
 
+  readonly hostedZoneDomain: IHostedZone;
+  readonly hostedZoneSubdomains: IHostedZone[]; 
 
-  constructor(scope: Construct, id: string, props: SubdomainsStackProps) {
-    super(scope, id, { ...props, env: { ...props.env, region: DNS_RESOURCES_REGION } });
-
+  constructor(scope: Construct, id: string, props: SubdomainsProps) {
+    super(scope, id);
+    if( props.env.region != DNS_RESOURCES_REGION ){
+      throw new Error(`region must be: ${DNS_RESOURCES_REGION}`)
+    }
+    this.hostedZoneSubdomains = [];
     if ((props.crossRegionReferences === undefined) || (props.crossRegionReferences === false)){
       throw new Error("please allow crossRegionReferences")
     }
-
-    const hostedZoneDomain = HostedZone.fromLookup(this, 
+    this.hostedZoneDomain = HostedZone.fromLookup(this, 
       `${id}-${removeNonTextChars(props.domain.name)}-hz`, 
       {domainName: props.domain.name, 
         privateZone: props.domain.private ? props.domain.private : false});
@@ -59,10 +64,7 @@ export class SubdomainsStack extends Stack {
           throw new Error("must provide vpc info when creating a private zone")
         }
 
-        const vpc = Vpc.fromLookup(this, `${idAffix}-vpc`, {
-          vpcId: subdomain.vpc.id,
-          vpcName: subdomain.vpc.name
-        })
+        const vpc = Vpc.fromLookup(this, `${idAffix}-vpc`, subdomain.vpc)
 
         hostedZone = new PrivateHostedZone(this, 
           `${idAffix}-hz`, {
@@ -70,6 +72,7 @@ export class SubdomainsStack extends Stack {
           vpc: vpc
         })
       }
+      this.hostedZoneSubdomains.push(hostedZone);
 
       new StringParameter(this, `${idAffix}-paramHostedZoneId`, {
         parameterName: deriveParameter(props, `${removeNonTextChars(subdomain.name)}/hostedZoneId`),
@@ -90,18 +93,18 @@ export class SubdomainsStack extends Stack {
         exportName: deriveOutput(props, `${removeNonTextChars(subdomain.name)}-hostedZoneArn`)});
 
       let nsRecord = new NsRecord(this, `${idAffix}-nsRecord`, {
-        zone: hostedZoneDomain,
+        zone: this.hostedZoneDomain,
         recordName: subdomain.name,
         values: hostedZone.hostedZoneNameServers!,
         ttl: Duration.seconds(172800),
       });
       nsRecord.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
-      if ((subdomain.createCertificate !== undefined) && (subdomain.createCertificate)){
+      if ((subdomain.createCertificate !== undefined) && (subdomain.createCertificate === true)){
         let certificate = new Certificate(this, `${idAffix}-certificate`, {
           domainName: subdomain.name,
           certificateName: subdomain.name,
-          validation: CertificateValidation.fromDns(hostedZone),
+          validation: CertificateValidation.fromDns(hostedZone)
         });
 
         new StringParameter(this, `${idAffix}-paramCertificateArn`, {

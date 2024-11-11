@@ -1,17 +1,15 @@
-import { CfnOutput, Duration, RemovalPolicy, Size, Stack } from 'aws-cdk-lib';
-import { IVpc, Peer, Port, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
-import { IRole } from 'aws-cdk-lib/aws-iam';
-import { Key } from 'aws-cdk-lib/aws-kms';
-import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { Duration, RemovalPolicy, Size } from 'aws-cdk-lib';
+import { Peer, Port, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { ARecord, IHostedZone, PublicHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { BaseConstructs, BaseConstructsProps } from '../constructs/base';
-import { StringParameter } from 'aws-cdk-lib/aws-ssm';
-import { deriveAffix, deriveOutput, deriveParameter, deriveResourceName, removeNonTextChars, SSMParameterReader } from '..';
+import {
+  CommonStackProps, deriveAffix, deriveParameter, deriveResourceName,
+  removeNonTextChars, SSMParameterReader, IBaseConstructs
+} from '..';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
-import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
+import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, 
+  FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import { ApplicationProtocol, ApplicationProtocolVersion } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { AllowedMethods, CachePolicy, Distribution, OriginProtocolPolicy, OriginRequestPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
@@ -19,11 +17,15 @@ import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CLOUDFRONT_PREFIX_LIST, DNS_RESOURCES_REGION } from '../commons/constants';
 
-export interface DistributedLoadBalancedServiceStackProps extends BaseConstructsProps {
-  readonly logsBucketOn: boolean;
-  readonly domainLoadBalancer: string;
-  readonly dockerfileDir: string;
-  readonly domainDistribution: string;
+export interface DistributedServiceProps extends CommonStackProps {
+  readonly domain: {
+    readonly loadBalancer: string;
+    readonly distribution: string;
+  }
+  readonly docker:{
+    readonly imageUri?: string;
+    readonly dockerfileDir?: string; // we assume Platform.LINUX_AMD64 by default
+  }
   readonly capacity?: {
     readonly cpuUnits?: number; // default: 512, check: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs_patterns.ApplicationLoadBalancedFargateService.html#cpu
     readonly desiredCount?: number; // default: 1, check: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs_patterns.ApplicationLoadBalancedFargateService.html#desiredcount
@@ -34,25 +36,49 @@ export interface DistributedLoadBalancedServiceStackProps extends BaseConstructs
   }
 }
 
-export class DistributedLoadBalancedServiceStack extends Stack {
+export interface IDistributedService {
+  readonly cluster: Cluster;
+  readonly taskDefinition: FargateTaskDefinition;
+  readonly hostedZoneLoadBalancer: IHostedZone;
+  readonly fargateService: ApplicationLoadBalancedFargateService;
+  readonly distribution: Distribution;
+}
 
-  constructor(scope: Construct, id: string, props: DistributedLoadBalancedServiceStackProps) {
-    super(scope, id, props);
+export class DistributedService extends Construct implements IDistributedService {
 
-    const baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, props)
+  readonly cluster: Cluster;
+  readonly taskDefinition: FargateTaskDefinition;
+  readonly hostedZoneLoadBalancer: IHostedZone;
+  readonly fargateService: ApplicationLoadBalancedFargateService;
+  readonly distribution: Distribution;
+
+  constructor(scope: Construct, id: string, props: DistributedServiceProps, baseConstructs: IBaseConstructs) {
+    super(scope, id);
+
+    if(baseConstructs.logsBucket === undefined){
+      throw Error("base constructs must include logs bucket");
+    }
 
     // // --- container image ---
-
-    const containerImageApp = new DockerImageAsset(this, `${id}-image`, {
-      directory: props.dockerfileDir,
-      assetName: deriveResourceName(props, "image"),
-      platform: Platform.LINUX_AMD64,
-    });
-    containerImageApp.repository.grantPullPush(baseConstructs.role)
+    if((props.docker.dockerfileDir === undefined) && (props.docker.imageUri === undefined)){
+      throw Error("must provide one of the docker arguments");
+    }
+    let dockerImageUri: string;
+    if(props.docker.dockerfileDir !== undefined){
+      const imageAsset: DockerImageAsset = new DockerImageAsset(this, `${id}-image`, {
+        directory: props.docker.dockerfileDir,
+        platform: Platform.LINUX_AMD64,
+      });
+      imageAsset.repository.grantPullPush(baseConstructs.role)
+      dockerImageUri = imageAsset.imageUri
+    }
+    else {
+      dockerImageUri = props.docker.imageUri!
+    }
 
     // --- fargate service ---
 
-    const ecsCluster = new Cluster(this, `${id}-cluster`, {
+    this.cluster = new Cluster(this, `${id}-cluster`, {
       vpc: baseConstructs.vpc,
       clusterName: deriveResourceName(props, "cluster"),
       containerInsights: true,
@@ -67,7 +93,7 @@ export class DistributedLoadBalancedServiceStack extends Stack {
       },
     });
 
-    const taskDefinition = new FargateTaskDefinition(this, `${id}-taskDefinition`, {
+    this.taskDefinition = new FargateTaskDefinition(this, `${id}-taskDefinition`, {
       executionRole: baseConstructs.role, // grants the ECS agent permission to call AWS APIs
       family: deriveAffix(props),
       runtimePlatform: {
@@ -77,8 +103,8 @@ export class DistributedLoadBalancedServiceStack extends Stack {
       taskRole: baseConstructs.role, // grants containers in the task permission to call AWS APIs,
     });
 
-    taskDefinition.addContainer(`${id}-taskDefinitionContainerSrv`, {
-      image: ContainerImage.fromRegistry(containerImageApp.imageUri),
+    this.taskDefinition.addContainer(`${id}-taskDefinitionContainerSrv`, {
+      image: ContainerImage.fromRegistry(dockerImageUri),
       containerName: deriveResourceName(props, "image", "srv"),
       logging: LogDrivers.awsLogs({
         streamPrefix: deriveResourceName(props, "srv"),
@@ -102,26 +128,26 @@ export class DistributedLoadBalancedServiceStack extends Stack {
       Port.allTcp(), "allow all tcp ingress from cloudfront distribution")
 
     const hostZoneIdLoadBalancer= new SSMParameterReader(this, `${id}-paramReaderHzIdLb`, {
-      parameterName: deriveParameter(props, `${removeNonTextChars(props.domainLoadBalancer)}/hostedZoneId`),
+      parameterName: deriveParameter(props, `${removeNonTextChars(props.domain.loadBalancer)}/hostedZoneId`),
       region: DNS_RESOURCES_REGION
     }).getParameterValue();
 
-    const hostedZoneLoadBalancer = PublicHostedZone.fromHostedZoneAttributes(this, `${id}-hzLoadBalancer`, {
+    this.hostedZoneLoadBalancer = PublicHostedZone.fromHostedZoneAttributes(this, `${id}-hzLoadBalancer`, {
       hostedZoneId: hostZoneIdLoadBalancer,
-      zoneName: props.domainLoadBalancer
-    })
+      zoneName: props.domain.loadBalancer
+    });
 
-    const fargateService = new ApplicationLoadBalancedFargateService(this, `${id}-fargateService`, {
+    this.fargateService = new ApplicationLoadBalancedFargateService(this, `${id}-fargateService`, {
       assignPublicIp: false,
-      cluster: ecsCluster,
+      cluster: this.cluster,
       circuitBreaker: {
         enable: true,
         rollback: true
       },
       cpu: ((props.capacity !== undefined) && (props.capacity.cpuUnits !== undefined)) ? props.capacity.cpuUnits : 512,
       desiredCount: ((props.capacity !== undefined) && (props.capacity.desiredCount !== undefined)) ? props.capacity.desiredCount : 1,
-      domainName: props.domainLoadBalancer,
-      domainZone: hostedZoneLoadBalancer,
+      domainName: props.domain.loadBalancer,
+      domainZone: this.hostedZoneLoadBalancer,
       enableECSManagedTags: true,
       ephemeralStorageGiB: ((props.capacity !== undefined) && (props.capacity.ephemeralStorageGiB !== undefined)) ? props.capacity.ephemeralStorageGiB : 21,
       healthCheck: {
@@ -139,17 +165,58 @@ export class DistributedLoadBalancedServiceStack extends Stack {
       propagateTags: PropagatedTagSource.SERVICE,
       protocol: ApplicationProtocol.HTTPS,
       protocolVersion: ApplicationProtocolVersion.HTTP1,
-      publicLoadBalancer: false,
+      publicLoadBalancer: true,
       redirectHTTP: true,
       serviceName: deriveResourceName(props, "fargate", "srv"),
-      taskDefinition: taskDefinition,
+      taskDefinition: this.taskDefinition,
       openListener: false,
     });
-    //fargateService.loadBalancer.addSecurityGroup(securityGroupApp)
+    this.fargateService.loadBalancer.addSecurityGroup(securityGroupApp)
 
     // ------- cloudfront distribution  -------
 
+    const certificateArnDistribution= new SSMParameterReader(this, `${id}-paramReaderCertArnDist`, {
+      parameterName: deriveParameter(props, `${removeNonTextChars(props.domain.distribution)}/certificateArn`),
+      region: DNS_RESOURCES_REGION
+    }).getParameterValue();
+    const certificateDistribution = Certificate.fromCertificateArn(this, `${id}-certificateDistribution`, certificateArnDistribution)
 
+    const lbOriginApp = new HttpOrigin(props.domain.loadBalancer, {protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY})
+
+    this.distribution = new Distribution(this, `${id}-distribution`, {
+      defaultBehavior: { 
+        origin:  lbOriginApp, 
+        viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
+        cachePolicy: CachePolicy.CACHING_DISABLED,
+        allowedMethods: AllowedMethods.ALLOW_ALL, 
+        originRequestPolicy: OriginRequestPolicy.ALL_VIEWER,
+      },
+      certificate: certificateDistribution,
+      domainNames: [props.domain.distribution],
+      enableLogging: true,
+      logBucket: baseConstructs.logsBucket,
+      logIncludesCookies: true,
+      logFilePrefix: deriveResourceName(props, "distribution"),
+    });
+    this.distribution.applyRemovalPolicy(RemovalPolicy.DESTROY);
+
+    // new CfnOutput(this, `${id}-distributionUrl`, { 
+    //   value: `https://${this.distribution.distributionDomainName}`,
+    //   exportName: deriveOutput(props, "distributionUrl") });
+    
+    const hostZoneIdDistribution= new SSMParameterReader(this, `${id}-paramReaderHzIdDist`, {
+      parameterName: deriveParameter(props, `${removeNonTextChars(props.domain.distribution)}/hostedZoneId`),
+      region: DNS_RESOURCES_REGION
+    }).getParameterValue();
+
+    const hostedZoneDistribution = PublicHostedZone.fromHostedZoneAttributes(this, `${id}-hzDistribution`, {
+      hostedZoneId: hostZoneIdDistribution,
+      zoneName: props.domain.distribution
+    })
+    const aRecordApp = new ARecord(this, `${id}-aRecord`, {
+      zone: hostedZoneDistribution,
+      target: RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
+    });
 
   }
 }

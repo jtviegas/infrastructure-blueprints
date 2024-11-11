@@ -1,8 +1,7 @@
 name: release build, test & publish
 
-on:
-  push:
-    branches: [ development, release_*, feature_* ]
+on: push
+
 
 jobs:
   library:
@@ -18,43 +17,12 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: install dependencies
       run: ./helper.sh lib deps
-    - name: build code
-      run: ./helper.sh lib build
     - name: run tests
       run: ./helper.sh lib test
+    - name: build code
+      run: ./helper.sh lib build
     - name: publish package to npm
-      if: ${{ startsWith(github.ref_name, 'release_lib_') }}
+      if: ${{ startsWith(github.ref_name, 'release_') }}
       run: ./helper.sh lib publish
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  dns:
-    needs: library
-    runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref_name, 'release_dns_') }}
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
-    - run: ./helper.sh infra reqs
-    - run: ./helper.sh infra deps
-    - run: ./helper.sh infra on
-      env:
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-  service:
-    needs: library
-    runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref_name, 'release_infra_') }}
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
-    - run: ./helper.sh infra reqs
-    - run: ./helper.sh infra deps
-    - run: ./helper.sh infra on
-      env:
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    

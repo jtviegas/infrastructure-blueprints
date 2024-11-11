@@ -133,3 +133,4 @@ dist
 .local_variables
 .vscode
 
+.DS_Store

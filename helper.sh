@@ -88,101 +88,9 @@ update_bashutils(){
 # =======>    MAIN SECTION    =======>
 
 # ---------- LOCAL CONSTANTS ----------
-export INFRA_DIR="${this_folder}/infrastructure"
-export APP_DIR="${this_folder}/app"
-export LIB_DIR="${this_folder}/library"
+export TEST_DEPLOY_INFRA_DIR="${this_folder}/test/infrastructure"
 
 # ---------- LOCAL FUNCTIONS ----------
-global_infra_reqs(){
-  info "[global_infra_reqs|in]"
-
-  info "[global_infra_reqs] installing: typescript@${TYPESCRIPT_VERSION} and  aws-cdk@${CDK_VERSION}"
-  npm install -g "typescript@${TYPESCRIPT_VERSION}" "aws-cdk@${CDK_VERSION}" 
-  result="$?"
-
-  [ "$result" -ne "0" ] && err "[global_infra_reqs|out]  => ${result}" && exit 1
-  info "[global_infra_reqs|out] => ${result}"
-}
-
-npm_deps(){
-  info "[npm_deps|in] ({$1})"
-
-  [ -z "$1" ] && usage
-  _dir="$1"
-  _pwd=`pwd`
-  cd "$_dir"
-
-  npm install
-
-  result="$?"
-  cd "$_pwd"
-  [ "$result" -ne "0" ] && err "[npm_deps|out]  => ${result}" && exit 1
-  info "[npm_deps|out] => ${result}"
-}
-
-generate_certificate_assets(){
-  info "[generate_certificate_assets|in] ({$1})"
-
-  [ -z "$1" ] && usage
-  _dir="$1"
-  _pwd=`pwd`
-  cd "$_dir"
-
-  npm install
-
-  result="$?"
-  cd "$_pwd"
-  [ "$result" -ne "0" ] && err "[npm_deps|out]  => ${result}" && exit 1
-  info "[generate_certificate_assets|out] => ${result}"
-}
-
-lib_test(){
-  info "[lib_test|in] ({$1})"
-
-  [ -z "$1" ] && usage
-  _dir="$1"
-  _pwd=`pwd`
-  cd "$_dir"
-
-  npm run test
-
-  result="$?"
-  cd "$_pwd"
-  [ "$result" -ne "0" ] && err "[lib_test|out]  => ${result}" && exit 1
-  info "[lib_test|out] => ${result}"
-}
-
-lib_deps(){
-  info "[lib_deps|in] ({$1})"
-
-  [ -z "$1" ] && usage
-  _dir="$1"
-  _pwd=`pwd`
-  cd "$_dir"
-
-  npm ci
-
-  result="$?"
-  cd "$_pwd"
-  [ "$result" -ne "0" ] && err "[lib_deps|out]  => ${result}" && exit 1
-  info "[lib_deps|out] => ${result}"
-}
-
-lib_build(){
-  info "[lib_build|in] ({$1})"
-
-  [ -z "$1" ] && usage
-  _dir="$1"
-  _pwd=`pwd`
-  cd "$_dir"
-
-  npm run build
-
-  result="$?"
-  cd "$_pwd"
-  [ "$result" -ne "0" ] && err "[lib_build|out]  => ${result}" && exit 1
-  info "[lib_build|out] => ${result}"
-}
 
 # -------------------------------------
 usage() {
@@ -190,21 +98,17 @@ usage() {
   usage:
   $(basename $0) { option }
       options:
+      - bashutils:  updates bashutils include file
       - commands: lists handy commands we use all the time
       - lib:
         - publish:  publishes package to npm
         - test:     run library tests
         - deps:     install lib dependencies
         - build:    build/compile lib code
-      - infra: 
-        - reqs: install requirements globally required in the sytem for IaC
-        - deps: installs infra code dependencies
-        - on: deploys infra
-        - off: destroys infra
-        - bootstrap
-      - infra_domains: 
-        - on: deploys dns subdomains infra
-        - off: destroys subdomains infra
+      - deployment_test:
+        - setup: sets up the cdk environment for testing the deployment
+        - on: deploys cdk test infrastructure
+        - off: destroys cdk test infrastructure
 EOM
   exit 1
 }
@@ -216,66 +120,27 @@ case "$1" in
     commands
     ;;
   bashutils)
-    case "$2" in
-      package)
-        package
-        ;;
-      update)
-        update_bashutils
-        ;;
-      *)
-        usage
-        ;;
-    esac
+    update_bashutils
     ;;
-  lib)
-    case "$2" in
-      build)
-        lib_build "$LIB_DIR"
-        ;;
-      deps)
-        lib_deps "$LIB_DIR"
-        ;;
-      test)
-        lib_test "$LIB_DIR"
-        ;;
-      publish)
-        npm_publish "$NPM_REGISTRY" "$NPM_TOKEN" "$LIB_DIR"
-        ;;
-      *)
-        usage
-        ;;
-    esac
+  build)
+    npm run build
     ;;
-  infra)
-    case "$2" in
-      reqs)
-        global_infra_reqs
-        ;;
-      deps)
-        npm_deps "$INFRA_DIR"
-        ;;
-      on)
-        cdk_infra on "$INFRA_DIR" "$STACK_SERVICE"
-        ;;
-      off)
-        cdk_infra off "$INFRA_DIR" "$STACK_SERVICE"
-        ;;
-      bootstrap)
-        cdk_infra bootstrap "$INFRA_DIR"
-        ;;
-      *)
-        usage
-        ;;
-    esac
+  deps)
+    npm ci
     ;;
-  infra_domains)
+  test)
+    npm run test
+    ;;
+  publish)
+    npm_publish "$NPM_REGISTRY" "$NPM_TOKEN" "$this_folder"
+    ;;
+    deployment_test)
     case "$2" in
       on)
-        cdk_infra on "$INFRA_DIR" "$STACK_SUBDOMAINS"
+        cdk_infra on "$TEST_DEPLOY_INFRA_DIR" "$3"
         ;;
       off)
-        cdk_infra off "$INFRA_DIR" "$STACK_SUBDOMAINS"
+        cdk_infra off "$TEST_DEPLOY_INFRA_DIR" "$3"
         ;;
       *)
         usage

@@ -1,6 +1,7 @@
 
 export { SysEnv
   , CommonStackProps 
+  , VpcLookupAttributes
   , deriveParameterPrefix
   , deriveParameter
   , deriveOutput
@@ -16,11 +17,11 @@ export { SysEnv
 
 export {DNS_RESOURCES_REGION, CLOUDFRONT_PREFIX_LIST} from "./commons/constants";
 
-export {BaseConstructs, BaseConstructsProps} from "./constructs/base"
+export {BaseConstructs, BaseConstructsProps, IBaseConstructs} from "./constructs/base"
 
-export {DistributedLoadBalancedServiceStack, DistributedLoadBalancedServiceStackProps} from "./stacks/distributedLoadBalancedService"
+export { DistributedService, DistributedServiceProps, IDistributedService } from "./constructs/distributedService"
 
-export {SubdomainsStack, SubdomainsStackProps, SubdomainSpec} from "./stacks/subdomains"
+export {SubdomainSpec, ISubdomains, Subdomains, SubdomainsProps} from "./constructs/subdomains"
 
 
 
