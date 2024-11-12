@@ -16,13 +16,13 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - name: install dependencies
-      run: ./helper.sh lib deps
+      run: ./helper.sh deps
     - name: run tests
-      run: ./helper.sh lib test
+      run: ./helper.sh test
     - name: build code
-      run: ./helper.sh lib build
+      run: ./helper.sh build
     - name: publish package to npm
       if: ${{ startsWith(github.ref_name, 'release_') }}
-      run: ./helper.sh lib publish
+      run: ./helper.sh publish
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
