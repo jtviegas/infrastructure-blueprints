@@ -1,5 +1,9 @@
 # infrastructure-blueprints
-reusable solutions for infrastructure
+reusable solutions for infrastructure using aws-cdk
+
+# how-to: constructs
+
+
 
 ## aws-cdk library: @jtviegas/cdk-blueprints
 

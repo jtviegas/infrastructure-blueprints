@@ -23,6 +23,8 @@ export { DistributedService, DistributedServiceProps, IDistributedService } from
 
 export {SubdomainSpec, ISubdomains, Subdomains, SubdomainsProps} from "./constructs/subdomains"
 
+export { AppGwDistributedService, AppGwDistributedServiceProps, IAppGwDistributedService } from "./constructs/appGwDistributedService"
+
 
 
 
