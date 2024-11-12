@@ -1,0 +1,63 @@
+import { Capture, Match, Template } from "aws-cdk-lib/assertions";
+import * as cdk from "aws-cdk-lib";
+import * as sns from "aws-cdk-lib/aws-sns";
+import {BaseConstructs, DistributedService, DistributedServiceProps, BaseConstructsProps, CLOUDFRONT_PREFIX_LIST, AppGwDistributedServiceProps, AppGwDistributedService} from "../../../src";
+const util = require("util")
+
+describe("StateMachineStack", () => {
+  test("synthesizes the way we expect", () => {
+    const app = new cdk.App();
+    const testStack = new cdk.Stack(app, "TestStack");
+
+    const props: AppGwDistributedServiceProps = {
+      organisation: "corp",
+      department: "main",
+      solution: "abc",
+      env: { name: "dev", region: "eu-north-1", account: "123456" },
+      docker: {
+        imageUri: "strm/helloworld-http"
+      }
+    }
+    const base = new BaseConstructs(testStack, "TestStack-baseconstructs", props)
+    const service = new AppGwDistributedService(testStack, "TestStack-service", props, base);
+    const template = Template.fromStack(testStack);
+
+    console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
+
+    template.hasResourceProperties("AWS::ECS::Cluster", {
+      ClusterName: 'abc-dev-eunorth1-cluster',
+    });
+
+    template.hasResourceProperties("AWS::ECS::TaskDefinition", {
+      ContainerDefinitions: [{Image: 'strm/helloworld-http'}],
+      Family: 'AbcDevEunorth1'
+    });
+
+    template.hasResourceProperties("AWS::EC2::SecurityGroupIngress", {
+      Description: "Load balancer to target",
+      FromPort: 80,
+      ToPort: 80
+    });
+
+    template.hasResourceProperties("AWS::ElasticLoadBalancingV2::Listener", {
+      Port: 80,
+      Protocol: 'HTTP'
+    });
+
+    template.hasResourceProperties("AWS::ECS::Service", {
+      ServiceName: 'abc-dev-eunorth1-fargate-srv',
+      Cluster: { Ref: 'TestStackserviceTestStackserviceclusterD4914B63' },
+      DeploymentController: { Type: 'ECS' },
+      LoadBalancers: [{ContainerName: 'abc-dev-eunorth1-image-srv',
+        ContainerPort: 80}]
+    });
+
+    template.hasResourceProperties("AWS::ElasticLoadBalancingV2::TargetGroup", {
+      Port: 80,
+      Protocol: 'TCP',
+      TargetType: 'alb'
+    });
+
+
+})
+})

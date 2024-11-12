@@ -37,7 +37,7 @@ describe("StateMachineStack", () => {
     const subdomains = new Subdomains(testStack, "TestStack-subdomains", props);
     const template = Template.fromStack(testStack);
 
-    console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
+    //console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
 
     template.hasResourceProperties("AWS::Route53::HostedZone", {
       Name: 'ui.site.com.'

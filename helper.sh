@@ -100,11 +100,10 @@ usage() {
       options:
       - bashutils:  updates bashutils include file
       - commands: lists handy commands we use all the time
-      - lib:
-        - publish:  publishes package to npm
-        - test:     run library tests
-        - deps:     install lib dependencies
-        - build:    build/compile lib code
+      - publish:  publishes package to npm
+      - test:     run library tests
+      - deps:     install lib dependencies
+      - build:    build/compile lib code
       - deployment_test:
         - setup: sets up the cdk environment for testing the deployment
         - on: deploys cdk test infrastructure
