@@ -4,7 +4,7 @@ import * as sns from "aws-cdk-lib/aws-sns";
 import {BaseConstructs, DistributedService, DistributedServiceProps, BaseConstructsProps, CLOUDFRONT_PREFIX_LIST} from "../../../src";
 const util = require("util")
 
-describe("StateMachineStack", () => {
+describe("DistributedServiceStack", () => {
   test("synthesizes the way we expect", () => {
     const app = new cdk.App();
     

@@ -25,6 +25,7 @@ export {SubdomainSpec, ISubdomains, Subdomains, SubdomainsProps} from "./constru
 
 export { AppGwDistributedService, AppGwDistributedServiceProps, IAppGwDistributedService } from "./constructs/appGwDistributedService"
 
+export { AppGwDistributedSpa, AppGwDistributedSpaProps, IAppGwDistributedSpa } from "./constructs/appGwDistributedSpa"
 
 
 

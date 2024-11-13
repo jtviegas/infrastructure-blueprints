@@ -3,25 +3,25 @@ import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 //import { Subdomains, SubdomainsProps } from '@jtviegas/cdk-blueprints';
 import {
-  BaseConstructs, AppGwDistributedService,
-  AppGwDistributedServiceProps
+  BaseConstructs, AppGwDistributedSpaProps,
+  AppGwDistributedSpa
 } from "../../../src";
 import { Construct } from 'constructs';
 import path = require('path');
 
 
-class ServiceStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: AppGwDistributedServiceProps) {
+class SpaStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: AppGwDistributedSpaProps) {
     super(scope, id, props);
-    const baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, props)
-    const service = new AppGwDistributedService(this, `${id}-service`, props, baseConstructs);
+    const baseConstructs = new BaseConstructs(this, `${id}-base`, props)
+    const service = new AppGwDistributedSpa(this, `${id}-spa`, props, baseConstructs);
   }
 }
 
 const app = new cdk.App();
 const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
 
-const props: AppGwDistributedServiceProps = {
+const props: AppGwDistributedSpaProps = {
   crossRegionReferences: true,
   organisation: "nn",
   department: "dsss",
@@ -33,12 +33,11 @@ const props: AppGwDistributedServiceProps = {
     solution: "testdsrv",
     environment: environment.name,
   },
-  stackName: "ServiceStack",
+  stackName: "SpaStack",
   docker: {
-    // imageUri: "strm/helloworld-http",
-    dockerfileDir: path.join(__dirname, "../../resources/docker/streamlit-frontend")
+    dockerfileDir: path.join(__dirname, "../../resources/docker/hellosrv")
   }
 }
 
-new ServiceStack(app, "ServiceStack", props)
+new SpaStack(app, "SpaStack", props)
 

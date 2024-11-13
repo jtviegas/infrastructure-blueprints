@@ -3,7 +3,7 @@ import * as cdk from "aws-cdk-lib";
 import { BaseConstructs, BaseConstructsProps, capitalizeFirstLetter, deriveAffix, deriveOutput, deriveParameter, deriveParameterPrefix, deriveResourceAffix, deriveResourceName, removeLeadingSlash, removeNonTextChars } from "../../../src";
 
 
-describe("base constructs", () => {
+describe("BaseConstructsStack", () => {
   test("constains the required constructs", () => {
     const app = new cdk.App();
     const testStack = new cdk.Stack(app, "TestStack");

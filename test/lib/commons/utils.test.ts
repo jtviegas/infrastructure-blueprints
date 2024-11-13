@@ -4,8 +4,6 @@ import { capitalizeFirstLetter, deriveAffix, deriveOutput, deriveParameter, deri
 
 describe("commons utils", () => {
   test("methods work as expected", () => {
-    const app = new cdk.App();
-
     expect( removeNonTextChars("a-b/c.d") ).toEqual( 'abcd' );
     expect( capitalizeFirstLetter("a-b/c.d") ).toEqual( 'A-b/c.d' );
     expect( capitalizeFirstLetter("-b/c.d") ).toEqual( '-b/c.d' );
@@ -24,6 +22,6 @@ describe("commons utils", () => {
     expect( deriveResourceName(props, "av", "xyz") ).toEqual( 'abc-dev-eunorth1-av-xyz' );
     expect( removeLeadingSlash("/xyz") ).toEqual( 'xyz' );
     expect( removeLeadingSlash("xyz") ).toEqual( 'xyz' );
-})
+  })
 })
 

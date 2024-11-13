@@ -94,12 +94,20 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
     this.role = new Role(this, `${id}-role`, {
       assumedBy: new CompositePrincipal(
         new ServicePrincipal("ecs-tasks.amazonaws.com"),
+        new ServicePrincipal("lambda.amazonaws.com"),
+        new ServicePrincipal("apigateway.amazonaws.com"),
         new AccountPrincipal(props.env.account)
       ),
       roleName: deriveResourceName(props, "base"),
       managedPolicies: [
         ManagedPolicy.fromAwsManagedPolicyName(
           "service-role/AmazonECSTaskExecutionRolePolicy"
+        ),
+        ManagedPolicy.fromAwsManagedPolicyName(
+          "service-role/AWSLambdaVPCAccessExecutionRole"
+        ),
+        ManagedPolicy.fromAwsManagedPolicyName(
+          "service-role/AWSLambdaBasicExecutionRole"
         )
       ]
     });

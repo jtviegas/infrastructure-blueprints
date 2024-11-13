@@ -4,7 +4,7 @@ import * as sns from "aws-cdk-lib/aws-sns";
 import {BaseConstructs, DistributedService, DistributedServiceProps, BaseConstructsProps, CLOUDFRONT_PREFIX_LIST, AppGwDistributedServiceProps, AppGwDistributedService} from "../../../src";
 const util = require("util")
 
-describe("StateMachineStack", () => {
+describe("AppGwDistributedServiceStack", () => {
   test("synthesizes the way we expect", () => {
     const app = new cdk.App();
     const testStack = new cdk.Stack(app, "TestStack");
@@ -22,7 +22,7 @@ describe("StateMachineStack", () => {
     const service = new AppGwDistributedService(testStack, "TestStack-service", props, base);
     const template = Template.fromStack(testStack);
 
-    console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
+    // console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
 
     template.hasResourceProperties("AWS::ECS::Cluster", {
       ClusterName: 'abc-dev-eunorth1-cluster',

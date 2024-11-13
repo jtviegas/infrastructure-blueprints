@@ -5,7 +5,7 @@ import {BaseConstructs, DistributedService, DistributedServiceProps, BaseConstru
   Subdomains, SubdomainsProps} from "../../../src";
 
 
-describe("StateMachineStack", () => {
+describe("SubdomainsStack", () => {
   test("synthesizes the way we expect", () => {
     const app = new cdk.App();
 

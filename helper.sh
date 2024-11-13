@@ -89,8 +89,96 @@ update_bashutils(){
 
 # ---------- LOCAL CONSTANTS ----------
 export TEST_DEPLOY_INFRA_DIR="${this_folder}/test/infrastructure"
+export TEST_FRONTEND_DIR="${this_folder}/test/resources/frontend"
 
 # ---------- LOCAL FUNCTIONS ----------
+cdk_global_reqs(){
+  info "[cdk_global_reqs|in]"
+  #info "[cdk_global_reqs] installing: typescript@${TYPESCRIPT_VERSION} and aws-cdk@${CDK_VERSION}"
+  npm install -g "typescript@${TYPESCRIPT_VERSION}" "aws-cdk@${CDK_VERSION}" 
+  result="$?"
+  [ "$result" -ne "0" ] && err "[cdk_global_reqs|out]  => ${result}" && exit 1
+  info "[cdk_global_reqs|out] => ${result}"
+}
+
+infra_reqs(){
+  info "[infra_reqs|in]"
+
+  [ -z "$1" ] && usage
+  infra_dir="$1"
+  _pwd=`pwd`
+  cd "$infra_dir"
+
+  cdk_global_reqs
+
+  npm install 
+  result="$?"
+  cd "$_pwd"
+  [ "$result" -ne "0" ] && err "[infra_reqs|out]  => ${result}" && exit 1
+  info "[infra_reqs|out] => ${result}"
+}
+
+ui_config(){
+  info "[ui_config|in] ({$1})"
+
+  [ -z "$1" ] && usage
+  ui_dir="$1"
+
+  outputs=$(aws cloudformation describe-stacks --stack-name "$INFRA_STACK" --query 'Stacks[0].Outputs' --output=json)
+  backendUrl=$(echo "$outputs" | jq -r ".[] | select(.OutputKey == \"$OUTPUT_SPA_URL\") | .OutputValue")
+
+  info "[ui_config] clientId: $clientId   |   signInUrl: $signInUrl"
+
+  jq --arg loginUrl "$signInUrl" '.loginUrl |= $loginUrl' "${ui_dir}/src/config.json" > "${ui_dir}/src/new_config.json"
+  jq --arg authUrl "$authUrl" '.authUrl |= $authUrl' "${ui_dir}/src/new_config.json" > "${ui_dir}/src/tmp_config.json"
+  jq --arg clientId "$clientId" '.clientId |= $clientId' "${ui_dir}/src/tmp_config.json" > "${ui_dir}/src/new_config.json"
+  jq --arg protectedUrl "$protectedUrl" '.protectedUrl |= $protectedUrl' "${ui_dir}/src/new_config.json" > "${ui_dir}/src/tmp_config.json"
+  jq --arg domain "$domain" '.domain |= $domain' "${ui_dir}/src/tmp_config.json" > "${ui_dir}/src/new_config.json"
+  jq --arg local false '.local |= $local' "${ui_dir}/src/new_config.json" > "${ui_dir}/src/config.json"
+  jq '.' "${ui_dir}/src/config.json"
+  rm "${ui_dir}/src/new_config.json" "${ui_dir}/src/tmp_config.json"
+
+  result="$?"
+  [ "$result" -ne "0" ] && err "[ui_config|out]  => ${result}" && exit 1
+  info "[ui_config|out] => ${result}"
+}
+
+ui_upload(){
+  info "[ui_upload|in] ({$1}, {$2})"
+
+  [ -z "$1" ] && usage
+  build_dir="$1/build"
+  [ -z "$2" ] && usage
+  bucket_url="$2"
+
+  aws s3 rm "$bucket_url" --recursive
+  aws s3 cp "$build_dir" "$bucket_url" --recursive
+
+  result="$?"
+  [ "$result" -ne "0" ] && err "[ui_upload|out]  => ${result}" && exit 1
+  info "[ui_upload|out] => ${result}"
+}
+
+run_local(){
+  info "[run_local|in] ({$1})"
+
+  [ -z "$1" ] && usage
+  ui_dir="$1"
+  _pwd=`pwd`
+  cd "$ui_dir"
+
+  cp "${ui_dir}/src/config.json" "${ui_dir}/src/new_config.json"
+  jq --arg local true '.local |= $local' "${ui_dir}/src/new_config.json" > "${ui_dir}/src/config.json"
+  jq '.' "${ui_dir}/src/config.json"
+  rm "${ui_dir}/src/new_config.json"
+
+  npm run start
+
+  result="$?"
+  cd "$_pwd"
+  [ "$result" -ne "0" ] && err "[run_local|out]  => ${result}" && exit 1
+  info "[run_local|out] => ${result}"
+}
 
 # -------------------------------------
 usage() {
@@ -104,6 +192,7 @@ usage() {
       - test:     run library tests
       - deps:     install lib dependencies
       - build:    build/compile lib code
+      - test_frontend:    runs test frontend app
       - deployment_test:
         - setup: sets up the cdk environment for testing the deployment
         - on: deploys cdk test infrastructure
@@ -130,11 +219,36 @@ case "$1" in
   test)
     npm run test
     ;;
+  test_ui)
+    case "$2" in
+      reqs)
+        npm_deps "$TEST_FRONTEND_DIR"
+        ;;
+      build)
+        ui_build "$TEST_FRONTEND_DIR"
+        ;;
+      config)
+        ui_config "$TEST_FRONTEND_DIR"
+        ;;
+      upload)
+        ui_upload "$TEST_FRONTEND_DIR" "s3://${SPA_BUCKET}"
+        ;;
+      run_local)
+        run_local "$TEST_FRONTEND_DIR"
+        ;;
+      *)
+        usage
+        ;;
+    esac
+    ;;
   publish)
     npm_publish "$NPM_REGISTRY" "$NPM_TOKEN" "$this_folder"
     ;;
-    deployment_test)
+  deployment_test)
     case "$2" in
+      reqs)
+        infra_reqs
+        ;;
       on)
         cdk_infra on "$TEST_DEPLOY_INFRA_DIR" "$3"
         ;;
