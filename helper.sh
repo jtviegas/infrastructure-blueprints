@@ -247,13 +247,13 @@ case "$1" in
   deployment_test)
     case "$2" in
       reqs)
-        infra_reqs
+        infra_reqs "$TEST_DEPLOY_INFRA_DIR"
         ;;
       on)
-        cdk_infra on "$TEST_DEPLOY_INFRA_DIR" "$3"
+        cdk_infra on "$TEST_DEPLOY_INFRA_DIR"
         ;;
       off)
-        cdk_infra off "$TEST_DEPLOY_INFRA_DIR" "$3"
+        cdk_infra off "$TEST_DEPLOY_INFRA_DIR"
         ;;
       *)
         usage
