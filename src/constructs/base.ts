@@ -8,6 +8,34 @@ import { Bucket, IBucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { CommonStackProps, deriveParameterPrefix, deriveResourceName, VpcLookupAttributes } from '../commons/utils';
 
+/*
+class BaseStack extends cdk.Stack {
+  readonly baseConstructs: IBaseConstructs;
+
+  constructor(scope: Construct, id: string, props: BaseConstructsProps) {
+    super(scope, id, props);
+    this.baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, props)
+  }
+}
+
+const baseProps: BaseConstructsProps = {
+  crossRegionReferences: true,
+  organisation: "nn",
+  department: "dsss",
+  solution: "testdsrv",
+  env: environment,
+  tags: {
+    organisation: "nn",
+    department: "dsss",
+    solution: "testdsrv",
+    environment: environment.name,
+  },
+  stackName: "BaseStack",
+  logsBucketOn: true
+}
+
+const baseStack = new BaseStack(app, "BaseStack", baseProps);
+*/
 
 export interface BaseConstructsProps extends CommonStackProps {
   readonly logsBucketOn?: boolean;

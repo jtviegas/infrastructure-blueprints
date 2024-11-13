@@ -9,6 +9,44 @@ import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { DNS_RESOURCES_REGION } from '../commons/constants';
 
+/*
+class SubdomainsStack extends cdk.Stack {
+
+  constructor(scope: Construct, id: string, props: SubdomainsProps, base: IBaseConstructs) {
+    super(scope, id, props);
+
+    // work out the subdomains vpc settings based on base constructs
+    const subdomainspecs = []
+    for(const subdomain of props.subdomains){
+      subdomainspecs.push({...subdomain, vpc: base.getVpcLookupAttributes()})
+    }
+    const subdomainProps: SubdomainsProps ={
+      ...props,
+      subdomains: subdomainspecs
+    }
+    const subdomains = new Subdomains(this, `${id}-subdomains`, subdomainProps)
+  }
+}
+
+const app = new cdk.App();
+const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
+
+const subdomainsProps: SubdomainsProps = {
+  ...baseProps,
+  env: {...environment, region: "us-east-1"},
+  domain: {
+    name: "site.com",
+    private: false
+  },
+  subdomains: [
+    { name: "ui.site.com", private: false, createCertificate: true}, 
+    { name: "lb.site.com", private: false, createCertificate: false}
+  ],
+  stackName: "SubdomainsStack",
+}
+
+const subdomainsStack = new SubdomainsStack(app, "SubdomainsStack", subdomainsProps, baseStack.baseConstructs);
+*/
 
 export interface SubdomainSpec {
   readonly name: string;
