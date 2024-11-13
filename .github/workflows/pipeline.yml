@@ -6,7 +6,6 @@ on: push
 jobs:
   library:
     runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.ref_name, 'feature_spa') }}
     strategy:
       matrix:
         node-version: [20.x]
