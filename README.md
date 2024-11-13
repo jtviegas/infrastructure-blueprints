@@ -86,7 +86,7 @@ const baseProps: BaseConstructsProps = {
 const baseStack = new BaseStack(app, "BaseStack", baseProps);
 ```
 ## Subdomains
-![base](assets/subdomains.png)
+![subdomains](assets/subdomains.png)
 
 ### constructor interface
 ```
@@ -155,7 +155,7 @@ const subdomainsStack = new SubdomainsStack(app, "SubdomainsStack", subdomainsPr
 
 
 ## DistributedService
-![base](assets/distributedService.png)
+![DistributedService](assets/distributedService.png)
 
 ### constructor interface
 ```
@@ -217,7 +217,7 @@ new ServiceStack(app, "ServiceStack", dsProps, baseStack.baseConstructs)
 ```
 
 ## AppGwDistributedService
-![base](assets/appGwDistributedService.png)
+![AppGwDistributedService](assets/appGwDistributedService.png)
 
 ### constructor interface
 ```
