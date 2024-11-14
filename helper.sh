@@ -152,7 +152,6 @@ ui_config(){
   jq --arg backendUrl "$backendUrl" '.backendUrl |= $backendUrl' "${ui_dir}/src/config.json" > "${ui_dir}/src/new_config.json"
   mv "${ui_dir}/src/new_config.json" "${ui_dir}/src/config.json" 
   jq '.' "${ui_dir}/src/config.json"
-  rm "${ui_dir}/src/new_config.json"
 
   result="$?"
   [ "$result" -ne "0" ] && err "[ui_config|out]  => ${result}" && exit 1
