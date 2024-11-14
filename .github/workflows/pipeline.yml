@@ -23,24 +23,24 @@ jobs:
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  # service:
-  #   needs: library
-  #   runs-on: ubuntu-latest
-  #   if: ${{ startsWith(github.ref_name, 'feature_spa') }}
-  #   steps:
-  #   - uses: actions/checkout@v4
-  #   - uses: actions/setup-node@v4
-  #     with:
-  #       node-version: 20
-  #   - run: ./helper.sh test_infra reqs
-  #   - run: ./helper.sh test_infra on
-  #     env:
-  #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #   - run: ./helper.sh test_ui reqs
-  #   - run: ./helper.sh test_ui build
-  #   - run: ./helper.sh test_ui config
-  #     env:
-  #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #   - run: ./helper.sh test_ui upload
-  #     env:
-  #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  service:
+    needs: library
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref_name, 'infra_test_') }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - run: ./helper.sh test_infra reqs
+    - run: ./helper.sh test_infra on
+      env:
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - run: ./helper.sh test_ui reqs
+    - run: ./helper.sh test_ui config
+      env:
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - run: ./helper.sh test_ui build
+    - run: ./helper.sh test_ui upload
+      env:
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

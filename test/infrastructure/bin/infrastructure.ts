@@ -1,14 +1,10 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import {
-  BaseConstructs, AppGwDistributedSpaProps,
-  AppGwDistributedSpa,
-  IBaseConstructs
-} from "../../../src";
 import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 import path = require('path');
+import { AppGwDistributedSpa, AppGwDistributedSpaProps, BaseConstructs, IBaseConstructs } from '@jtviegas/cdk-blueprints';
 
 
 class SpaStack extends cdk.Stack {
