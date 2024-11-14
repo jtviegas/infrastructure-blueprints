@@ -31,7 +31,7 @@ class SpaStack extends cdk.Stack {
 const app = new cdk.App();
 const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
 
-const props: AppGwDistributedSpaProps = {
+const props = {
   crossRegionReferences: true,
   organisation: process.env.ORGANISATION!,
   department: process.env.DEPARTMENT!,
