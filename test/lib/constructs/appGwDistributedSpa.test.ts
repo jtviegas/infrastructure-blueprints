@@ -20,7 +20,7 @@ describe("AppGwDistributedSpaStack", () => {
       }
     }
     const base = new BaseConstructs(testStack, "baseconstructs", props)
-    const service = new AppGwDistributedSpa(testStack, "service", props, base);
+    const service = new AppGwDistributedSpa(testStack, "service", base, props);
     const template = Template.fromStack(testStack);
 
     console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
