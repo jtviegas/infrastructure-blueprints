@@ -10,7 +10,9 @@ import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patte
 import { ApplicationProtocol, ApplicationProtocolVersion, NetworkListenerAction, NetworkLoadBalancer, NetworkTargetGroup, Protocol as LbProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { AccessLogFormat, AuthorizationType, ConnectionType, Cors, Integration, IntegrationType, LogGroupLogDestination, PassthroughBehavior, Period, RestApi, VpcLink } from 'aws-cdk-lib/aws-apigateway';
 import { AlbListenerTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets';
-import { CommonStackProps, deriveAffix, deriveResourceName, IBaseConstructs } from '..';
+import { CommonStackProps, deriveAffix, deriveResourceName } from '../commons/utils';
+import { IBaseConstructs } from './base';
+
 
 /*
 class ServiceStack extends cdk.Stack {

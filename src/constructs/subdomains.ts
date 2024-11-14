@@ -3,11 +3,10 @@ import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { HostedZone, IHostedZone, NsRecord, PrivateHostedZone, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
-import { CommonStackProps, deriveOutput, deriveParameter } from '../commons/utils';
-import { removeNonTextChars, VpcLookupAttributes } from '..';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { DNS_RESOURCES_REGION } from '../commons/constants';
+import { CommonStackProps, deriveOutput, deriveParameter, removeNonTextChars, VpcLookupAttributes } from '../commons/utils';
 
 /*
 class SubdomainsStack extends cdk.Stack {

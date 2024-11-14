@@ -1,14 +1,15 @@
 import { Duration, RemovalPolicy, Size } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
-import { AccessLogFormat, Cors, LambdaIntegration, LambdaRestApi, LogGroupLogDestination, MethodLoggingLevel, PassthroughBehavior, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { CommonStackProps, deriveAffix, deriveResourceName, DockerImageSpec, IBaseConstructs } from '..';
 import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods, IBucket } from 'aws-cdk-lib/aws-s3';
 import { AnyPrincipal, Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { DockerImageCode, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
 import { RestApiOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { AllowedMethods, CachePolicy, Distribution, IDistribution, OriginRequestPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { AccessLogFormat, Cors, LambdaIntegration, LambdaRestApi, LogGroupLogDestination, MethodLoggingLevel, PassthroughBehavior, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { CommonStackProps, deriveAffix, deriveResourceName, DockerImageSpec } from '../commons/utils';
+import { IBaseConstructs } from './base';
 
 
 

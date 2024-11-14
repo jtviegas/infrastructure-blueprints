@@ -3,10 +3,6 @@ import { Peer, Port, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { ARecord, IHostedZone, PublicHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
-import {
-  CommonStackProps, deriveAffix, deriveParameter, deriveResourceName,
-  removeNonTextChars, SSMParameterReader, IBaseConstructs
-} from '..';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, 
   FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
@@ -16,6 +12,9 @@ import { AllowedMethods, CachePolicy, Distribution, OriginProtocolPolicy, Origin
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CLOUDFRONT_PREFIX_LIST, DNS_RESOURCES_REGION } from '../commons/constants';
+import { CommonStackProps, deriveAffix, deriveParameter, deriveResourceName, removeNonTextChars, SSMParameterReader } from '../commons/utils';
+import { IBaseConstructs } from './base';
+
 
 /*
 --- USAGE ---
