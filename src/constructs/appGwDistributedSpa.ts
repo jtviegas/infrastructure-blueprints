@@ -87,8 +87,6 @@ export class AppGwDistributedSpa extends Construct implements IAppGwDistributedS
     // ------- backend function -------
     const functionBackend = new DockerImageFunction(this, `${id}-functionBackend`, {
       code: DockerImageCode.fromEcr(apiImage.repository, {tagOrDigest: apiImage.imageTag}),
-      // handler: Handler.FROM_IMAGE,
-      // runtime: Runtime.FROM_IMAGE,
       functionName: deriveResourceName(props, "backend"),
       memorySize: 10240,
       ephemeralStorageSize: Size.gibibytes(8),
