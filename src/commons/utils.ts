@@ -1,6 +1,7 @@
 import * as CustomResource from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 import { StackProps, Arn, Stack } from "aws-cdk-lib";
+import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
 
 export function removeNonTextChars(str: string): string {
   return str.replace(/[^a-zA-Z0-9\s]/g, '');
@@ -8,6 +9,11 @@ export function removeNonTextChars(str: string): string {
 
 export function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+export interface DockerImageSpec {
+  apiImage: DockerImageAsset;
+  dockerfileDir: string; // we assume Platform.LINUX_AMD64 by default
 }
 
 export interface VpcLookupAttributes {

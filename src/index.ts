@@ -1,5 +1,6 @@
 
 export { SysEnv
+  , DockerImageSpec
   , CommonStackProps 
   , VpcLookupAttributes
   , deriveParameterPrefix

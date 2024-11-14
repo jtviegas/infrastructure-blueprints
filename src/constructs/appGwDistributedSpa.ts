@@ -2,26 +2,23 @@ import { CfnOutput, Duration, RemovalPolicy, Size } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AccessLogFormat, Cors, LambdaIntegration, LambdaRestApi, LogGroupLogDestination, MethodLoggingLevel, PassthroughBehavior, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { CommonStackProps, deriveAffix, deriveOutput, deriveParameter, deriveResourceName, IBaseConstructs } from '..';
+import { CommonStackProps, deriveAffix, deriveOutput, deriveParameter, deriveResourceName, DockerImageSpec, IBaseConstructs } from '..';
 import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods, IBucket } from 'aws-cdk-lib/aws-s3';
 import { AnyPrincipal, Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
-import { Code, Handler, Runtime, Function } from 'aws-cdk-lib/aws-lambda';
+import { Code, Handler, Runtime, Function, DockerImageCode, EcrImageCode, AssetImageCode, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
 import { IRepository, Repository } from 'aws-cdk-lib/aws-ecr';
-import { RestApiOrigin, S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { RestApiOrigin, S3BucketOrigin, S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { AllowedMethods, CachePolicy, Distribution, IDistribution, OriginRequestPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 
+
 export interface AppGwDistributedSpaProps extends CommonStackProps {
-  readonly docker:{
-    readonly imageRepository?: string;
-    readonly dockerfileDir?: string; // we assume Platform.LINUX_AMD64 by default
-  }
+  readonly docker: Partial<DockerImageSpec>
 }
 
 export interface IAppGwDistributedSpa {
-  readonly baseConstructs: IBaseConstructs;
   readonly bucketSpa: IBucket;
   readonly api: RestApi;
   readonly distribution: IDistribution;
@@ -29,32 +26,29 @@ export interface IAppGwDistributedSpa {
 
 export class AppGwDistributedSpa extends Construct implements IAppGwDistributedSpa {
 
-  readonly baseConstructs: IBaseConstructs;
   readonly bucketSpa: IBucket;
   readonly api: RestApi;
   readonly distribution: IDistribution;
 
-  constructor(scope: Construct, id: string, props: AppGwDistributedSpaProps, baseConstructs: IBaseConstructs) {
+  constructor(scope: Construct, id: string, baseConstructs: IBaseConstructs, props: AppGwDistributedSpaProps) {
     super(scope, id);
 
-    this.baseConstructs = baseConstructs;
-
-    // // --- backend container image ---
-    if((props.docker.dockerfileDir === undefined) && (props.docker.imageRepository === undefined)){
+    // --- backend container image ---
+    if((props.docker.dockerfileDir === undefined) && (props.docker.apiImage === undefined)){
       throw Error("must provide one of the docker arguments");
     }
-    let dockerImageRepository: IRepository;
-    if(props.docker.dockerfileDir !== undefined){
-      const imageAsset: DockerImageAsset = new DockerImageAsset(this, `${id}-imageAsset`, {
-        directory: props.docker.dockerfileDir,
-        platform: Platform.LINUX_AMD64,
-      });
-      imageAsset.repository.grantPullPush(baseConstructs.role)
-      dockerImageRepository = imageAsset.repository
+    let apiImage: DockerImageAsset;
+    if (props.docker.apiImage !== undefined){
+      apiImage = props.docker.apiImage!;
     }
     else {
-      dockerImageRepository = Repository.fromRepositoryName(this, `${id}-imageRepository`, props.docker.imageRepository!)
+      apiImage = new DockerImageAsset(this, `${id}-apiImage`, {
+        directory: props.docker.dockerfileDir!,
+        platform: Platform.LINUX_AMD64,
+      });
     }
+    apiImage.repository.grantPullPush(baseConstructs.role);
+    
 
      // ------- spa bucket -------
      this.bucketSpa = new Bucket(this, `${id}-bucketSpa`, {
@@ -64,9 +58,6 @@ export class AppGwDistributedSpa extends Construct implements IAppGwDistributedS
       encryption: BucketEncryption.KMS,
       encryptionKey: baseConstructs.key,
       enforceSSL: true,
-      /*
-      websiteIndexDocument: 'index.html',
-      */
       blockPublicAccess: new BlockPublicAccess({
         blockPublicPolicy: false
       }),
@@ -95,10 +86,10 @@ export class AppGwDistributedSpa extends Construct implements IAppGwDistributedS
     });
 
     // ------- backend function -------
-    const functionBackend = new Function(this, `${id}-functionBackend`, {
-      code: Code.fromEcrImage(dockerImageRepository),
-      handler: Handler.FROM_IMAGE,
-      runtime: Runtime.FROM_IMAGE,
+    const functionBackend = new DockerImageFunction(this, `${id}-functionBackend`, {
+      code: DockerImageCode.fromEcr(apiImage.repository, {tagOrDigest: apiImage.imageTag}),
+      // handler: Handler.FROM_IMAGE,
+      // runtime: Runtime.FROM_IMAGE,
       functionName: deriveResourceName(props, "backend"),
       memorySize: 10240,
       ephemeralStorageSize: Size.gibibytes(8),
@@ -157,7 +148,7 @@ export class AppGwDistributedSpa extends Construct implements IAppGwDistributedS
     );
 
     // ------- cloudfront distribution  -------
-    const s3SpaOrigin = new S3StaticWebsiteOrigin(this.bucketSpa);
+    const s3SpaOrigin = S3BucketOrigin.withOriginAccessControl(this.bucketSpa);
     const ApiSpaOrigin = new RestApiOrigin(this.api);
 
     this.distribution = new Distribution(this, `${id}-distribution`, {
@@ -175,18 +166,6 @@ export class AppGwDistributedSpa extends Construct implements IAppGwDistributedS
       enableLogging: true,
       logIncludesCookies: true
     });
-
-    const url =  `https://${this.distribution.distributionDomainName}`;
-
-    new StringParameter(this, `${id}-paramUrl`, {
-      parameterName: deriveParameter(props, "url"),
-      stringValue: url ,
-      description: 'solution url',
-      tier: ParameterTier.STANDARD,
-      dataType: ParameterDataType.TEXT
-    }).applyRemovalPolicy(RemovalPolicy.DESTROY);
-
-    new CfnOutput(this,  `${id}-outputUrl`, { value: url, exportName: deriveOutput(props, "url")});
 
   }
 }

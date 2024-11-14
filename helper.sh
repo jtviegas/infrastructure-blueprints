@@ -118,45 +118,84 @@ infra_reqs(){
   info "[infra_reqs|out] => ${result}"
 }
 
+ui_build(){
+  info "[ui_build|in] ({$1})"
+
+  [ -z "$1" ] && usage
+  _dir="$1"
+  _pwd=`pwd`
+  cd "$_dir"
+
+  npm run build
+
+  result="$?"
+  cd "$_pwd"
+  [ "$result" -ne "0" ] && err "[ui_build|out]  => ${result}" && exit 1
+  info "[ui_build|out] => ${result}"
+}
+
 ui_config(){
   info "[ui_config|in] ({$1})"
 
   [ -z "$1" ] && usage
   ui_dir="$1"
+  [ -z "$2" ] && usage
+  local stack="$2"
+  [ -z "$3" ] && usage
+  local outputUrl="$3"
 
-  outputs=$(aws cloudformation describe-stacks --stack-name "$INFRA_STACK" --query 'Stacks[0].Outputs' --output=json)
-  backendUrl=$(echo "$outputs" | jq -r ".[] | select(.OutputKey == \"$OUTPUT_SPA_URL\") | .OutputValue")
+  outputs=$(aws cloudformation describe-stacks --stack-name "$stack" --query 'Stacks[0].Outputs' --output=json)
+  backendUrl=$(echo "$outputs" | jq -r ".[] | select(.ExportName == \"${outputUrl}\") | .OutputValue")
 
-  info "[ui_config] clientId: $clientId   |   signInUrl: $signInUrl"
+  info "[ui_config] backendUrl: $backendUrl"
 
-  jq --arg loginUrl "$signInUrl" '.loginUrl |= $loginUrl' "${ui_dir}/src/config.json" > "${ui_dir}/src/new_config.json"
-  jq --arg authUrl "$authUrl" '.authUrl |= $authUrl' "${ui_dir}/src/new_config.json" > "${ui_dir}/src/tmp_config.json"
-  jq --arg clientId "$clientId" '.clientId |= $clientId' "${ui_dir}/src/tmp_config.json" > "${ui_dir}/src/new_config.json"
-  jq --arg protectedUrl "$protectedUrl" '.protectedUrl |= $protectedUrl' "${ui_dir}/src/new_config.json" > "${ui_dir}/src/tmp_config.json"
-  jq --arg domain "$domain" '.domain |= $domain' "${ui_dir}/src/tmp_config.json" > "${ui_dir}/src/new_config.json"
-  jq --arg local false '.local |= $local' "${ui_dir}/src/new_config.json" > "${ui_dir}/src/config.json"
+  jq --arg backendUrl "$backendUrl" '.backendUrl |= $backendUrl' "${ui_dir}/src/config.json" > "${ui_dir}/src/new_config.json"
+  mv "${ui_dir}/src/new_config.json" "${ui_dir}/src/config.json" 
   jq '.' "${ui_dir}/src/config.json"
-  rm "${ui_dir}/src/new_config.json" "${ui_dir}/src/tmp_config.json"
+  rm "${ui_dir}/src/new_config.json"
 
   result="$?"
   [ "$result" -ne "0" ] && err "[ui_config|out]  => ${result}" && exit 1
   info "[ui_config|out] => ${result}"
 }
 
-ui_upload(){
-  info "[ui_upload|in] ({$1}, {$2})"
+spa_upload(){
+  info "[spa_upload|in] ($1, $2, $3)"
 
   [ -z "$1" ] && usage
   build_dir="$1/build"
   [ -z "$2" ] && usage
-  bucket_url="$2"
+  local stack="$2"
+  [ -z "$3" ] && usage
+  local outputName="$3"
+
+  outputs=$(aws cloudformation describe-stacks --stack-name "$stack"  --query 'Stacks[0].Outputs' --output=json)
+  bucket=$(echo "$outputs" | jq -r ".[] | select(.ExportName == \"${outputName}\") | .OutputValue")
+  bucket_url="s3://${bucket}"
+  info "[spa_upload] bucket_url: $bucket_url"
 
   aws s3 rm "$bucket_url" --recursive
   aws s3 cp "$build_dir" "$bucket_url" --recursive
 
   result="$?"
-  [ "$result" -ne "0" ] && err "[ui_upload|out]  => ${result}" && exit 1
-  info "[ui_upload|out] => ${result}"
+  [ "$result" -ne "0" ] && err "[spa_upload|out]  => ${result}" && exit 1
+  info "[spa_upload|out] => ${result}"
+}
+
+npm_deps(){
+  info "[npm_deps|in] ({$1})"
+
+  [ -z "$1" ] && usage
+  _dir="$1"
+  _pwd=`pwd`
+  cd "$_dir"
+
+  npm install
+
+  result="$?"
+  cd "$_pwd"
+  [ "$result" -ne "0" ] && err "[npm_deps|out]  => ${result}" && exit 1
+  info "[npm_deps|out] => ${result}"
 }
 
 run_local(){
@@ -180,23 +219,50 @@ run_local(){
   info "[run_local|out] => ${result}"
 }
 
+invalidate_distribution(){
+  info "[invalidate_distribution|in] ($1, $2)"
+
+  [ -z "$1" ] && usage
+  local stack="$1"
+  [ -z "$2" ] && usage
+  local distributionIdOutputName="$2"
+
+  outputs=$(aws cloudformation describe-stacks --stack-name "$stack" --query 'Stacks[0].Outputs' --output=json)
+  distributionId=$(echo "$outputs" | jq -r ".[] | select(.ExportName == \"$distributionIdOutputName\") | .OutputValue")
+  info "[invalidate_distribution] distributionId: ${distributionId})"
+  aws cloudfront create-invalidation --distribution-id $distributionId --paths "/*"
+  result="$?"
+  [ "$result" -ne "0" ] && err "[invalidate_distribution|out]  => ${result}" && exit 1
+  info "[invalidate_distribution|out] => ${result}"
+}
+
 # -------------------------------------
 usage() {
   cat <<EOM
   usage:
   $(basename $0) { option }
       options:
-      - bashutils:  updates bashutils include file
+
       - commands: lists handy commands we use all the time
-      - publish:  publishes package to npm
-      - test:     run library tests
+      - bashutils:  updates bashutils include file
+      ...library section
       - deps:     install lib dependencies
+      - test:     run library tests
       - build:    build/compile lib code
-      - test_frontend:    runs test frontend app
-      - deployment_test:
-        - setup: sets up the cdk environment for testing the deployment
+      - publish:  publishes package to npm
+      ... infra testing section
+      - test_infra:
+        - reqs: sets up the cdk environment for testing the deployment
         - on: deploys cdk test infrastructure
         - off: destroys cdk test infrastructure
+      ... test ui section
+      - test_ui:
+        - reqs:     install ui dependencies
+        - run:      runs test ui locally
+        - config:   creates configuration for the test ui based on infrastructure deployed
+        - build:    build/compiles ui code
+        - upload:   uploads the test ui to the infrastructure
+      
 EOM
   exit 1
 }
@@ -210,41 +276,19 @@ case "$1" in
   bashutils)
     update_bashutils
     ;;
-  build)
-    npm run build
-    ;;
   deps)
     npm ci
     ;;
   test)
     npm run test
     ;;
-  test_ui)
-    case "$2" in
-      reqs)
-        npm_deps "$TEST_FRONTEND_DIR"
-        ;;
-      build)
-        ui_build "$TEST_FRONTEND_DIR"
-        ;;
-      config)
-        ui_config "$TEST_FRONTEND_DIR"
-        ;;
-      upload)
-        ui_upload "$TEST_FRONTEND_DIR" "s3://${SPA_BUCKET}"
-        ;;
-      run_local)
-        run_local "$TEST_FRONTEND_DIR"
-        ;;
-      *)
-        usage
-        ;;
-    esac
+  build)
+    npm run build
     ;;
   publish)
     npm_publish "$NPM_REGISTRY" "$NPM_TOKEN" "$this_folder"
     ;;
-  deployment_test)
+  test_infra)
     case "$2" in
       reqs)
         infra_reqs "$TEST_DEPLOY_INFRA_DIR"
@@ -254,6 +298,28 @@ case "$1" in
         ;;
       off)
         cdk_infra off "$TEST_DEPLOY_INFRA_DIR"
+        ;;
+      *)
+        usage
+        ;;
+    esac
+    ;;
+  test_ui)
+    case "$2" in
+      reqs)
+        npm_deps "$TEST_FRONTEND_DIR"
+        ;;
+      run)
+        run_local "$TEST_FRONTEND_DIR"
+        ;;
+      build)
+        ui_build "$TEST_FRONTEND_DIR"
+        ;;
+      config)
+        ui_config "$TEST_FRONTEND_DIR" "$STACK" "$OUTPUT_DISTRIBUTION_URL"
+        ;;
+      upload)
+        spa_upload "$TEST_FRONTEND_DIR" "$STACK" "$OUTPUT_BUCKET_SPA" && invalidate_distribution "$STACK" "$OUTPUT_DISTRIBUTION_ID"
         ;;
       *)
         usage

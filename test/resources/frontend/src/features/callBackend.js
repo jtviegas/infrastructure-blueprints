@@ -4,7 +4,7 @@ import { pushAlert, AlertType } from '../components/alert';
 export const callBackend = async () => {
   console.log("[callBackend|in]")
   console.log('[callBackend] config.backendUrl: %O', config.backendUrl);
-  let response = await fetch(config.backendUrl, {method: 'GET', headers: {'Accept': 'text/plain;charset=UTF-8', 'Access-Control-Allow-Origin': '*'}, mode: "no-cors" });
+  let response = await fetch(`${config.backendUrl}/api`, {method: 'GET', headers: {'Accept': 'text/plain;charset=UTF-8', 'Access-Control-Allow-Origin': '*'}, mode: "no-cors" });
   console.log('[callBackend] response: %O', response);
   let body = await response.text();
   console.log('[callBackend] body: %o', body);
