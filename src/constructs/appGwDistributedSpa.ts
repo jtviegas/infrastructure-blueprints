@@ -13,7 +13,7 @@ import { AllowedMethods, CachePolicy, Distribution, IDistribution, OriginRequest
 
 
 export interface AppGwDistributedSpaProps extends CommonStackProps {
-  readonly docker: Partial<DockerImageSpec>
+  readonly docker: Partial<DockerImageSpec>;
 }
 
 export interface IAppGwDistributedSpa {

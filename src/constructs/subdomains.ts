@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
-import { Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
-import { Certificate, CertificateProps, CertificateValidation, ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { Duration, RemovalPolicy } from 'aws-cdk-lib';
+import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { HostedZone, IHostedZone, NsRecord, PrivateHostedZone, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
 import { CommonStackProps, deriveOutput, deriveParameter } from '../commons/utils';

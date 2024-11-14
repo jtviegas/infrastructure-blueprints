@@ -32,7 +32,6 @@ const app = new cdk.App();
 const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
 
 const props: AppGwDistributedSpaProps = {
-  crossRegionReferences: true,
   organisation: process.env.ORGANISATION!,
   department: process.env.DEPARTMENT!,
   solution: process.env.SOLUTION!,
@@ -46,7 +45,8 @@ const props: AppGwDistributedSpaProps = {
   stackName: process.env.STACK!,
   docker: {
     dockerfileDir: path.join(__dirname, "../../resources/docker/hellosrv")
-  }
+  },
+  crossRegionReferences: true
 }
 
 new SpaStack(app, process.env.STACK!, props)

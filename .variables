@@ -3,7 +3,7 @@ export ENVIRONMENT="${ENV:-dev}"
 export NPM_REGISTRY=registry.npmjs.org
 
 # infrastructure
-export TYPESCRIPT_VERSION="~5.4.5"
+export TYPESCRIPT_VERSION="~5.6.3"
 export CDK_VERSION="2.166.0"
 
 # aws
