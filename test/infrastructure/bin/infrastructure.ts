@@ -10,7 +10,6 @@ import {
 import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 import path = require('path');
-import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 
 
 class SpaStack extends cdk.Stack {
@@ -51,7 +50,7 @@ const props: AppGwDistributedSpaProps = {
   }
 }
 
-new SpaStack(app, "SpaStack", props)
+new SpaStack(app, process.env.STACK!, props)
 
 
 

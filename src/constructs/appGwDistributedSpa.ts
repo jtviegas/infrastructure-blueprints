@@ -1,16 +1,14 @@
-import { CfnOutput, Duration, RemovalPolicy, Size } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Size } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { AccessLogFormat, Cors, LambdaIntegration, LambdaRestApi, LogGroupLogDestination, MethodLoggingLevel, PassthroughBehavior, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { CommonStackProps, deriveAffix, deriveOutput, deriveParameter, deriveResourceName, DockerImageSpec, IBaseConstructs } from '..';
+import { CommonStackProps, deriveAffix, deriveResourceName, DockerImageSpec, IBaseConstructs } from '..';
 import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods, IBucket } from 'aws-cdk-lib/aws-s3';
 import { AnyPrincipal, Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
-import { Code, Handler, Runtime, Function, DockerImageCode, EcrImageCode, AssetImageCode, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
-import { IRepository, Repository } from 'aws-cdk-lib/aws-ecr';
-import { RestApiOrigin, S3BucketOrigin, S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { DockerImageCode, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
+import { RestApiOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { AllowedMethods, CachePolicy, Distribution, IDistribution, OriginRequestPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
-import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
 
 
 
