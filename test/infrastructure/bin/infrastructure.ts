@@ -4,11 +4,15 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 import path = require('path');
-import { AppGwDistributedSpa, AppGwDistributedSpaProps, BaseConstructs, IBaseConstructs } from '@jtviegas/cdk-blueprints';
+//import { AppGwDistributedSpa, AppGwDistributedSpaProps, BaseConstructs, IBaseConstructs } from '@jtviegas/cdk-blueprints';
+import { AppGwDistributedSpa, AppGwDistributedSpaProps, BaseConstructs, IBaseConstructs } from '../../../src';
 
+export interface SpaStackProps extends AppGwDistributedSpaProps {
+  readonly logsBucketOn: boolean;
+}
 
 class SpaStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: AppGwDistributedSpaProps) {
+  constructor(scope: Construct, id: string, props: SpaStackProps) {
     super(scope, id, props);
 
     const baseConstructs: IBaseConstructs = new BaseConstructs(this, `${id}-base`, props);    
@@ -27,7 +31,8 @@ class SpaStack extends cdk.Stack {
 const app = new cdk.App();
 const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
 
-const props = {
+const props: SpaStackProps = {
+  logsBucketOn: true,
   crossRegionReferences: true,
   organisation: process.env.ORGANISATION!,
   department: process.env.DEPARTMENT!,

@@ -6,7 +6,7 @@ import { AnyPrincipal, Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { DockerImageCode, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
 import { RestApiOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { AllowedMethods, CachePolicy, Distribution, IDistribution, OriginRequestPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { AllowedMethods, CachePolicy, Distribution, IDistribution, OriginRequestPolicy, S3OriginAccessControl, Signing, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { AccessLogFormat, Cors, LambdaIntegration, LambdaRestApi, LogGroupLogDestination, MethodLoggingLevel, PassthroughBehavior, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { CommonStackProps, deriveAffix, deriveResourceName, DockerImageSpec } from '../commons/utils';
 import { IBaseConstructs } from './base';
@@ -31,6 +31,10 @@ export class AppGwDistributedSpa extends Construct implements IAppGwDistributedS
 
   constructor(scope: Construct, id: string, baseConstructs: IBaseConstructs, props: AppGwDistributedSpaProps) {
     super(scope, id);
+
+    if(baseConstructs.logsBucket === undefined){
+      throw Error("base constructs must provide logs bucket");
+    }
 
     // --- backend container image ---
     if((props.docker.dockerfileDir === undefined) && (props.docker.apiImage === undefined)){
@@ -145,7 +149,11 @@ export class AppGwDistributedSpa extends Construct implements IAppGwDistributedS
     );
 
     // ------- cloudfront distribution  -------
-    const s3SpaOrigin = S3BucketOrigin.withOriginAccessControl(this.bucketSpa);
+    const s3SpaOriginAccessControl = new S3OriginAccessControl(this, 'MyOAC', {
+      originAccessControlName: `${deriveAffix(props)}-spaOAC`, 
+      signing: Signing.SIGV4_ALWAYS
+    });
+    const s3SpaOrigin = S3BucketOrigin.withOriginAccessControl(this.bucketSpa, s3SpaOriginAccessControl);
     const ApiSpaOrigin = new RestApiOrigin(this.api);
 
     this.distribution = new Distribution(this, `${id}-distribution`, {
@@ -160,8 +168,10 @@ export class AppGwDistributedSpa extends Construct implements IAppGwDistributedS
         }
       },
       defaultRootObject: "index.html",
+      enableIpv6: false,
       enableLogging: true,
-      logIncludesCookies: true
+      logIncludesCookies: true,
+      logBucket: baseConstructs.logsBucket,
     });
 
   }
