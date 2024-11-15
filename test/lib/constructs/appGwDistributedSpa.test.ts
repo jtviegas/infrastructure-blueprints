@@ -10,16 +10,20 @@ describe("AppGwDistributedSpaStack", () => {
     const app = new cdk.App();
     const testStack = new cdk.Stack(app, "TestStack");
 
-    const props: AppGwDistributedSpaProps = {
+    const baseProps: BaseConstructsProps = {
+      logsBucketOn: true,
       organisation: "corp",
       department: "main",
       solution: "abc",
-      env: { name: "dev", region: "eu-north-1", account: "123456" },
+      env: { name: "dev", region: "eu-north-1", account: "123456" }
+    }
+    const props: AppGwDistributedSpaProps = {
+      ...baseProps,
       docker: {
         dockerfileDir: path.join(__dirname, "../../resources/docker/hellosrv")
       }
     }
-    const base = new BaseConstructs(testStack, "baseconstructs", props)
+    const base = new BaseConstructs(testStack, "baseconstructs", baseProps)
     const service = new AppGwDistributedSpa(testStack, "service", base, props);
     const template = Template.fromStack(testStack);
 
