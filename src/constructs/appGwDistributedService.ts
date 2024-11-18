@@ -245,6 +245,7 @@ export class AppGwDistributedService extends Construct implements IAppGwDistribu
         connectionType: ConnectionType.VPC_LINK,
         vpcLink: vpcLink2Nlb,
         passthroughBehavior: PassthroughBehavior.WHEN_NO_MATCH,
+        
         // integrationResponses: [
         //   { statusCode: '200',
         //     responseParameters: {
@@ -278,7 +279,7 @@ export class AppGwDistributedService extends Construct implements IAppGwDistribu
     const api_plan = this.api.addUsagePlan(`${id}-usagePlan`, {
       name: `${props.solution}-ApiUsagePlan`,
       quota: {
-        limit: 100,
+        limit: 24000,
         period: Period.DAY
       },
       throttle: {

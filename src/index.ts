@@ -14,9 +14,10 @@ export { SysEnv
   , SSMParameterReader
   , capitalizeFirstLetter
   , removeNonTextChars
+  , read_cidrs
 } from "./commons/utils";
 
-export {DNS_RESOURCES_REGION, CLOUDFRONT_PREFIX_LIST} from "./commons/constants";
+export {DNS_GLOBAL_RESOURCES_REGION, CLOUDFRONT_PREFIX_LIST} from "./commons/constants";
 
 export {BaseConstructs, BaseConstructsProps, IBaseConstructs} from "./constructs/base"
 

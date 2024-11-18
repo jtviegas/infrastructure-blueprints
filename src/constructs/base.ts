@@ -135,7 +135,7 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
       new PolicyStatement({
         effect: Effect.ALLOW,
         actions: ["ssm:*"],
-        resources: [`arn:aws:ssm:*:*:parameter${deriveParameterPrefix(props)}/*`],
+        resources: ["*"],
       }));
 
     // --- vpc ---

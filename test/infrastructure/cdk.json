@@ -80,7 +80,11 @@
       "dev": {
         "account": "041651352119",
         "region": "eu-north-1",
-        "name": "dev"
+        "name": "dev",
+        "domain": {
+          "name": "jtviegas.com",
+          "private": false
+        }
       },
       "tst": {},
       "uat": {},

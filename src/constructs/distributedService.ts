@@ -11,7 +11,7 @@ import { ApplicationProtocol, ApplicationProtocolVersion } from 'aws-cdk-lib/aws
 import { AllowedMethods, CachePolicy, Distribution, OriginProtocolPolicy, OriginRequestPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
-import { CLOUDFRONT_PREFIX_LIST, DNS_RESOURCES_REGION } from '../commons/constants';
+import { CLOUDFRONT_PREFIX_LIST, DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
 import { CommonStackProps, deriveAffix, deriveParameter, deriveResourceName, removeNonTextChars, SSMParameterReader } from '../commons/utils';
 import { IBaseConstructs } from './base';
 
@@ -226,7 +226,7 @@ export class DistributedService extends Construct implements IDistributedService
 
     const hostZoneIdLoadBalancer= new SSMParameterReader(this, `${id}-paramReaderHzIdLb`, {
       parameterName: deriveParameter(props, `${removeNonTextChars(props.domain.loadBalancer)}/hostedZoneId`),
-      region: DNS_RESOURCES_REGION
+      region: DNS_GLOBAL_RESOURCES_REGION
     }).getParameterValue();
 
     this.hostedZoneLoadBalancer = PublicHostedZone.fromHostedZoneAttributes(this, `${id}-hzLoadBalancer`, {
@@ -274,7 +274,7 @@ export class DistributedService extends Construct implements IDistributedService
 
     const certificateArnDistribution= new SSMParameterReader(this, `${id}-paramReaderCertArnDist`, {
       parameterName: deriveParameter(props, `${removeNonTextChars(props.domain.distribution)}/certificateArn`),
-      region: DNS_RESOURCES_REGION
+      region: DNS_GLOBAL_RESOURCES_REGION
     }).getParameterValue();
     const certificateDistribution = Certificate.fromCertificateArn(this, `${id}-certificateDistribution`, certificateArnDistribution)
 
@@ -303,7 +303,7 @@ export class DistributedService extends Construct implements IDistributedService
     
     const hostZoneIdDistribution= new SSMParameterReader(this, `${id}-paramReaderHzIdDist`, {
       parameterName: deriveParameter(props, `${removeNonTextChars(props.domain.distribution)}/hostedZoneId`),
-      region: DNS_RESOURCES_REGION
+      region: DNS_GLOBAL_RESOURCES_REGION
     }).getParameterValue();
 
     const hostedZoneDistribution = PublicHostedZone.fromHostedZoneAttributes(this, `${id}-hzDistribution`, {

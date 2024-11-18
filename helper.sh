@@ -89,7 +89,9 @@ update_bashutils(){
 
 # ---------- LOCAL CONSTANTS ----------
 export TEST_DEPLOY_INFRA_DIR="${this_folder}/test/infrastructure"
+export CLOUDFRONT_CIDR_FILE="${TEST_DEPLOY_INFRA_DIR}/cloudfront_cidr.json"
 export TEST_FRONTEND_DIR="${this_folder}/test/resources/frontend"
+
 
 # ---------- LOCAL FUNCTIONS ----------
 cdk_global_reqs(){
@@ -181,6 +183,21 @@ spa_upload(){
   info "[spa_upload|out] => ${result}"
 }
 
+get_cloudfront_cidr(){
+  info "[get_cloudfront_cidr|in] ($1)"
+
+  [ -z "$1" ] && usage
+  output_file="$1"
+
+  prefix_list_id=$(aws ec2 describe-managed-prefix-lists | jq -r ".\"PrefixLists\" | .[] | select(.PrefixListName == \"com.amazonaws.global.cloudfront.origin-facing\") | .PrefixListId")
+  outputs=$(aws ec2 get-managed-prefix-list-entries --prefix-list-id "$prefix_list_id" --output json)
+  echo $outputs | jq -r ".\"Entries\"" > "$output_file"
+
+  result="$?"
+  [ "$result" -ne "0" ] && err "[get_cloudfront_cidr|out]  => ${result}" && exit 1
+  info "[get_cloudfront_cidr|out] => ${result}"
+}
+
 npm_deps(){
   info "[npm_deps|in] ({$1})"
 
@@ -249,6 +266,7 @@ usage() {
       - test:     run library tests
       - build:    build/compile lib code
       - publish:  publishes package to npm
+      - get_cloudfront_cidr:  retrieves current aws region cloudfront cidr blocks list into a file
       ... infra testing section
       - test_infra:
         - reqs: sets up the cdk environment for testing the deployment
@@ -287,13 +305,16 @@ case "$1" in
   publish)
     npm_publish "$NPM_REGISTRY" "$NPM_TOKEN" "$this_folder"
     ;;
+  get_cloudfront_cidr)
+    get_cloudfront_cidr "$CLOUDFRONT_CIDR_FILE"
+    ;;
   test_infra)
     case "$2" in
       reqs)
         infra_reqs "$TEST_DEPLOY_INFRA_DIR"
         ;;
       on)
-        cdk_infra on "$TEST_DEPLOY_INFRA_DIR"
+        cdk_infra bootstrap "$TEST_DEPLOY_INFRA_DIR" "$3" && cdk_infra on "$TEST_DEPLOY_INFRA_DIR" "$3"
         ;;
       off)
         cdk_infra off "$TEST_DEPLOY_INFRA_DIR"

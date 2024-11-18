@@ -1,7 +1,11 @@
 import * as CustomResource from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
-import { StackProps, Arn, Stack } from "aws-cdk-lib";
+import { StackProps, Arn, Stack, Token, IResolvable } from "aws-cdk-lib";
 import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
+import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { CfnPrefixList } from 'aws-cdk-lib/aws-ec2';
+import * as fs from 'fs';
 
 export function removeNonTextChars(str: string): string {
   return str.replace(/[^a-zA-Z0-9\s]/g, '');
@@ -72,6 +76,15 @@ export const deriveResourceName = (props: CommonStackProps, name: string, surnam
 
 export function removeLeadingSlash(value: string): string {
   return value.slice(0, 1) == '/' ? value.slice(1) : value;
+}
+
+export function read_cidrs(file: string): string[] {
+  const result: string[] = [];
+  const entries = JSON.parse(fs.readFileSync(file).toString())
+  for(const entry of entries){
+    result.push(entry.Cidr)
+  }
+  return result
 }
 
 export interface SSMParameterReaderProps {

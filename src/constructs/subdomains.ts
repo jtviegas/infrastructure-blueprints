@@ -5,7 +5,7 @@ import { HostedZone, IHostedZone, NsRecord, PrivateHostedZone, PublicHostedZone 
 import { Construct } from 'constructs';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
-import { DNS_RESOURCES_REGION } from '../commons/constants';
+import { DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
 import { CommonStackProps, deriveOutput, deriveParameter, removeNonTextChars, VpcLookupAttributes } from '../commons/utils';
 
 /*
@@ -32,10 +32,12 @@ const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRON
 
 const subdomainsProps: SubdomainsProps = {
   ...baseProps,
-  env: {...environment, region: "us-east-1"},
-  domain: {
-    name: "site.com",
-    private: false
+  env: {...environment, 
+    region: "us-east-1",
+    domain: {
+      name: "site.com",
+      private: false
+    }
   },
   subdomains: [
     { name: "ui.site.com", private: false, createCertificate: true}, 
@@ -56,10 +58,6 @@ export interface SubdomainSpec {
 
 export interface SubdomainsProps extends CommonStackProps {
   readonly subdomains: SubdomainSpec[];
-  readonly domain: {
-    readonly name: string;
-    readonly private?: boolean;
-  }
 }
 
 export interface ISubdomains {
@@ -74,17 +72,21 @@ export class Subdomains extends Construct implements ISubdomains {
 
   constructor(scope: Construct, id: string, props: SubdomainsProps) {
     super(scope, id);
-    if( props.env.region != DNS_RESOURCES_REGION ){
-      throw new Error(`region must be: ${DNS_RESOURCES_REGION}`)
+    if( props.env.region != DNS_GLOBAL_RESOURCES_REGION ){
+      throw new Error(`region must be: ${DNS_GLOBAL_RESOURCES_REGION}`)
     }
+    if( props.env.domain === undefined ){
+      throw new Error("the domain must be defined in sytem environment" )
+    }
+
     this.hostedZoneSubdomains = [];
     if ((props.crossRegionReferences === undefined) || (props.crossRegionReferences === false)){
       throw new Error("please allow crossRegionReferences")
     }
     this.hostedZoneDomain = HostedZone.fromLookup(this, 
-      `${id}-${removeNonTextChars(props.domain.name)}-hz`, 
-      {domainName: props.domain.name, 
-        privateZone: props.domain.private ? props.domain.private : false});
+      `${id}-${removeNonTextChars(props.env.domain.name)}-hz`, 
+      {domainName: props.env.domain.name, 
+        privateZone: props.env.domain.private ? props.env.domain.private : false});
 
     for(const subdomain of props.subdomains){
       let idAffix = `${id}-${removeNonTextChars(subdomain.name)}`

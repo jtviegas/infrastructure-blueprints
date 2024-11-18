@@ -15,17 +15,16 @@ describe("SubdomainsStack", () => {
       logsBucketOn: false,
       department: "main",
       solution: "abc",
-      env: { name: "dev", region: "us-east-1", account: "123456" }
+      env: { name: "dev", region: "us-east-1", account: "123456", domain: {
+        name: "site.com",
+        private: false
+      } }
     }
     const testStack = new cdk.Stack(app, "TestStack", baseProps);
     const baseConstructs = new BaseConstructs(testStack, "TestStack-baseconstructs", baseProps)
     
     const props: SubdomainsProps = {
       ...baseProps,
-      domain: {
-        name: "jtviegas.com",
-        private: false
-      },
       subdomains: [
         { name: "ui.site.com", private: false, createCertificate: true, 
           vpc: baseConstructs.getVpcLookupAttributes()}, 
@@ -37,14 +36,14 @@ describe("SubdomainsStack", () => {
     const subdomains = new Subdomains(testStack, "TestStack-subdomains", props);
     const template = Template.fromStack(testStack);
 
-    //console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
+    // console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
 
     template.hasResourceProperties("AWS::Route53::HostedZone", {
       Name: 'ui.site.com.'
     });
 
     template.hasResourceProperties("AWS::Route53::RecordSet", {
-      Name: 'ui.site.com.jtviegas.com.',
+      Name: 'ui.site.com.',
       Type: 'NS'
     });
 
@@ -58,7 +57,7 @@ describe("SubdomainsStack", () => {
     });
 
     template.hasResourceProperties("AWS::Route53::RecordSet", {
-      Name: 'lb.site.com.jtviegas.com.',
+      Name: 'lb.site.com.',
       Type: 'NS'
     });
 

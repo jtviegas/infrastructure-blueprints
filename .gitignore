@@ -135,3 +135,8 @@ dist
 
 .DS_Store
 build
+cloudfront_cidr.json
+
+test/resources/frontend/build
+test/resources/frontend/build/**/*
+
