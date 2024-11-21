@@ -15,34 +15,6 @@ export function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export interface DockerImageSpec {
-  apiImage: DockerImageAsset;
-  dockerfileDir: string; // we assume Platform.LINUX_AMD64 by default
-}
-
-export interface VpcLookupAttributes {
-  readonly vpcId: string;
-  readonly vpcName: string;
-}
-
-export interface SysEnv {
-  readonly name: string;
-  readonly region: string;
-  readonly account: string;
-  readonly domain?: {
-    name: string;
-    private: boolean;
-  },
-  readonly vpc?: VpcLookupAttributes;
-}
-
-export interface CommonStackProps extends StackProps {
-  readonly env: SysEnv;
-  readonly organisation: string;
-  readonly department: string;
-  readonly solution: string;
-}
-
 export const deriveParameterPrefix = (props: CommonStackProps): string => {
   return `/${props.solution}/${props.env.name}`
 }
@@ -87,11 +59,38 @@ export function read_cidrs(file: string): string[] {
   return result
 }
 
+export interface DockerImageSpec {
+  apiImage: DockerImageAsset;
+  dockerfileDir: string; // we assume Platform.LINUX_AMD64 by default
+}
+
+export interface VpcLookupAttributes {
+  readonly vpcId: string;
+  readonly vpcName: string;
+}
+
+export interface SysEnv {
+  readonly name: string;
+  readonly region: string;
+  readonly account: string;
+  readonly domain?: {
+    name: string;
+    private: boolean;
+  },
+  readonly vpc?: VpcLookupAttributes;
+}
+
+export interface CommonStackProps extends StackProps {
+  readonly env: SysEnv;
+  readonly organisation: string;
+  readonly department: string;
+  readonly solution: string;
+}
+
 export interface SSMParameterReaderProps {
   parameterName: string;
   region: string;
 }
-
 
 export class SSMParameterReader extends CustomResource.AwsCustomResource {
   constructor(scope: Construct, name: string, props: SSMParameterReaderProps) {

@@ -128,13 +128,9 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
           "ecs:*",
           "kms:*",
           "route53:*",
+          "secretsmanager:*",
+          "ssm:*"
         ],
-        resources: ["*"],
-      }));
-      this.role.addToPolicy(
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["ssm:*"],
         resources: ["*"],
       }));
 
