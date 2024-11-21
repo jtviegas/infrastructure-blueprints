@@ -5,7 +5,7 @@ import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 import path = require('path');
 //import { AppGwDistributedSpa, AppGwDistributedSpaProps, BaseConstructs, IBaseConstructs } from '@jtviegas/cdk-blueprints';
-import { AppGwDistributedService, AppGwDistributedServiceProps, AppGwDistributedSpa, AppGwDistributedSpaProps, BaseConstructs, CLOUDFRONT_PREFIX_LIST, 
+import { AppGwDistributedService, AppGwDistributedServiceProps, AppGwDistributedServicePublic, AppGwDistributedSpa, AppGwDistributedSpaProps, BaseConstructs, CLOUDFRONT_PREFIX_LIST, 
   DNS_GLOBAL_RESOURCES_REGION, 
   IBaseConstructs, read_cidrs, 
   Subdomains,
@@ -17,6 +17,14 @@ import { AppGwDistributedService, AppGwDistributedServiceProps, AppGwDistributed
       super(scope, id, props);
       const baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, props)
       const service = new AppGwDistributedService(this, `${id}-service`, props, baseConstructs);
+    }
+  }
+
+  class ServicePublicStack extends cdk.Stack {
+    constructor(scope: Construct, id: string, props: AppGwDistributedServiceProps) {
+      super(scope, id, props);
+      const baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, props)
+      const service = new AppGwDistributedServicePublic(this, `${id}-service`, props, baseConstructs);
     }
   }
   
@@ -43,3 +51,5 @@ import { AppGwDistributedService, AppGwDistributedServiceProps, AppGwDistributed
   }
   
   new ServiceStack(app, "ServiceStack", props)
+  new ServicePublicStack(app, "ServicePublicStack", {...props, stackName: "ServicePublicStack"})
+  
