@@ -23,7 +23,7 @@ import { AppGwDistributedService, AppGwDistributedServiceProps, AppGwDistributed
   class ServicePublicStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: AppGwDistributedServiceProps) {
       super(scope, id, props);
-      const baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, props)
+      const baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, {...props, logsBucketOn: true})
       const service = new AppGwDistributedServicePublic(this, `${id}-service`, props, baseConstructs);
     }
   }
@@ -52,4 +52,3 @@ import { AppGwDistributedService, AppGwDistributedServiceProps, AppGwDistributed
   
   new ServiceStack(app, "ServiceStack", props)
   new ServicePublicStack(app, "ServicePublicStack", {...props, stackName: "ServicePublicStack"})
-  

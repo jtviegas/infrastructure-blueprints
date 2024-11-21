@@ -8,7 +8,7 @@ import {
 } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import { ApplicationProtocol, ApplicationProtocolVersion } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { AccessLogFormat, AuthorizationType, ConnectionType, Cors, HttpIntegration, LogGroupLogDestination, PassthroughBehavior, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { AccessLogFormat, AuthorizationType, ConnectionType, Cors, HttpIntegration, LogGroupLogDestination, PassthroughBehavior, Period, ProxyResource, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { deriveAffix, deriveResourceName } from '../commons/utils';
 import { IBaseConstructs } from './base';
 import { AppGwDistributedServiceProps, IAppGwDistributedService } from './appGwDistributedService';
@@ -126,7 +126,8 @@ export class AppGwDistributedServicePublic extends Construct implements IAppGwDi
       taskDefinition: this.taskDefinition,
       openListener: false,
     });
-    this.fargateService.loadBalancer.addSecurityGroup(serviceSecurityGroupApp)
+    this.fargateService.loadBalancer.addSecurityGroup(serviceSecurityGroupApp);
+    this.fargateService.loadBalancer.logAccessLogs(baseConstructs.logsBucket!, "lb");
 
     // ------- app gateway -------
     this.api = new RestApi(this, `${id}-api`, {
@@ -136,6 +137,7 @@ export class AppGwDistributedServicePublic extends Construct implements IAppGwDi
         allowOrigins: Cors.ALL_ORIGINS,
       },
       cloudWatchRole: true,
+      binaryMediaTypes: ["application/json", "text/json", "text/css", "application/octet-stream", "*/*"],
       deployOptions: {
         accessLogDestination: new LogGroupLogDestination(baseConstructs.logGroup),
         accessLogFormat: AccessLogFormat.jsonWithStandardFields({
@@ -152,31 +154,61 @@ export class AppGwDistributedServicePublic extends Construct implements IAppGwDi
       }
     });
 
+    // const ui_integration = new HttpIntegration( 
+    //   `http://${this.fargateService.loadBalancer.loadBalancerDnsName}/`
+    //    , {
+    //     proxy: true,
+    //   httpMethod: 'ANY',
+    //   options: {
+    //     connectionType: ConnectionType.INTERNET,
+    //     passthroughBehavior: PassthroughBehavior.WHEN_NO_MATCH,
+    //   },
+      
+    // });
+    // const ui_method_options = { apiKeyRequired: false, 
+    //   authorizationType: AuthorizationType.NONE,
 
-    const ui_integration = new HttpIntegration( 
-      `http://${this.fargateService.loadBalancer.loadBalancerDnsName}/`
-       , {
-      httpMethod: 'ANY',
-      options: {
-        connectionType: ConnectionType.INTERNET,
-        passthroughBehavior: PassthroughBehavior.WHEN_NO_MATCH,
-      },
+    //   methodResponses: [
+    //     {
+    //       statusCode: '200',
+    //       responseParameters: {
+    //         "method.response.header.Content-Type": true
+    //       },
+    //     },
+    //   ],
+    //   integrationResponses: [
+    //     { statusCode: '200',
+    //       responseParameters: {
+    //         "method.response.header.Content-Type": "integration.response.header.Content-Type",
+    //       },
+    //       responseTemplates: {
+    //         'text/html': "$input.path('body')",
+    //       }
+    //     }
+    //   ],
+    // }
+
+
+    //const root_methods = this.api.root.addMethod('ANY', ui_integration, ui_method_options);
+    //"{proxy+}"
+
+    const proxyResource = new ProxyResource(this, `${id}-proxyResource`, {
+      parent: this.api.root,
+      anyMethod: false,
     });
 
-    const ui_method_options = { apiKeyRequired: false, 
-      authorizationType: AuthorizationType.NONE,
-      methodResponses: [
-        {
-          statusCode: '200',
-          responseParameters: {
-            "method.response.header.Content-Type": true
-          },
-        },
-      ],
-    }
-
-    const root_methods = this.api.root.addMethod('ANY', ui_integration, ui_method_options);
-    this.api.root.addResource("{proxy+}").addMethod('ANY', ui_integration, ui_method_options)
+    proxyResource.addMethod("GET", new HttpIntegration(`http://${this.fargateService.loadBalancer.loadBalancerDnsName}/{proxy}`, {
+      proxy: true,
+      options: {
+        requestParameters: {
+          "integration.request.path.proxy": "method.request.path.proxy"
+        }
+      }
+    }), {
+      requestParameters: {
+        "method.request.path.proxy": true
+      }
+    });
 
     const api_plan = this.api.addUsagePlan(`${id}-usagePlan`, {
       name: `${props.solution}-ApiUsagePlan`,
