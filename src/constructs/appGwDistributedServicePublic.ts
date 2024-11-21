@@ -7,49 +7,11 @@ import {
   FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol
 } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
-import { ApplicationProtocol, ApplicationProtocolVersion, NetworkListenerAction, NetworkLoadBalancer, NetworkTargetGroup, Protocol as LbProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { AccessLogFormat, AuthorizationType, ConnectionType, ContentHandling, Cors, HttpIntegration, Integration, IntegrationType, LogGroupLogDestination, PassthroughBehavior, Period, RestApi, VpcLink } from 'aws-cdk-lib/aws-apigateway';
-import { AlbListenerTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets';
-import { CommonStackProps, deriveAffix, deriveResourceName } from '../commons/utils';
+import { ApplicationProtocol, ApplicationProtocolVersion } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import { AccessLogFormat, AuthorizationType, ConnectionType, Cors, HttpIntegration, LogGroupLogDestination, PassthroughBehavior, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { deriveAffix, deriveResourceName } from '../commons/utils';
 import { IBaseConstructs } from './base';
-import { HttpMethods } from 'aws-cdk-lib/aws-s3';
-import { HttpMethod } from 'aws-cdk-lib/aws-events';
 import { AppGwDistributedServiceProps, IAppGwDistributedService } from './appGwDistributedService';
-
-
-/*
-class ServiceStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: AppGwDistributedServiceProps) {
-    super(scope, id, props);
-    const baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, props)
-    const service = new AppGwDistributedService(this, `${id}-service`, props, baseConstructs);
-  }
-}
-
-const app = new cdk.App();
-const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
-
-const props: AppGwDistributedServiceProps = {
-  crossRegionReferences: true,
-  organisation: "nn",
-  department: "dsss",
-  solution: "testdsrv",
-  env: environment,
-  tags: {
-    organisation: "nn",
-    department: "dsss",
-    solution: "testdsrv",
-    environment: environment.name,
-  },
-  stackName: "ServiceStack",
-  docker: {
-    // imageUri: "strm/helloworld-http",
-    dockerfileDir: path.join(__dirname, "../../resources/docker/streamlit-frontend")
-  }
-}
-
-new ServiceStack(app, "ServiceStack", props)
-*/
 
 
 export class AppGwDistributedServicePublic extends Construct implements IAppGwDistributedService {
@@ -131,7 +93,7 @@ export class AppGwDistributedServicePublic extends Construct implements IAppGwDi
       securityGroupName: deriveResourceName(props, "sg", "srv"),
     });
     serviceSecurityGroupApp.addIngressRule(Peer.anyIpv4(), 
-      Port.allTcp(), "allow all tcp ingress from vpc")
+      Port.allTcp(), "allow all tcp ingress")
 
     this.fargateService = new ApplicationLoadBalancedFargateService(this, `${id}-fargateService`, {
       assignPublicIp: false,
