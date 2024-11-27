@@ -7,8 +7,6 @@ const util = require("util")
 describe("AppGwDistributedServiceStack", () => {
   test("synthesizes the way we expect", () => {
     const app = new cdk.App();
-    const testStack = new cdk.Stack(app, "TestStack");
-
     const props: AppGwDistributedServiceProps = {
       organisation: "corp",
       department: "main",
@@ -17,8 +15,10 @@ describe("AppGwDistributedServiceStack", () => {
       docker: {
         imageUri: "strm/helloworld-http"
       }
-    }
-    const base = new BaseConstructs(testStack, "TestStack-baseconstructs", props)
+    };
+
+    const testStack = new cdk.Stack(app, "TestStack", props);
+    const base = new BaseConstructs(testStack, "TestStack-baseconstructs", {...props, logsBucketOn: true});
     const service = new AppGwDistributedService(testStack, "TestStack-service", props, base);
     const template = Template.fromStack(testStack);
 
