@@ -8,44 +8,48 @@ import {
 } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import { ApplicationProtocol, ApplicationProtocolVersion, NetworkListenerAction, NetworkLoadBalancer, NetworkTargetGroup, Protocol as LbProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { AccessLogFormat, AuthorizationType, ConnectionType, Cors, Integration, IntegrationType, LogGroupLogDestination, PassthroughBehavior, Period, RestApi, VpcLink } from 'aws-cdk-lib/aws-apigateway';
+import { AccessLogFormat, AuthorizationType, ConnectionType, Cors, HttpIntegration, Integration, IntegrationType, LogGroupLogDestination, PassthroughBehavior, Period, ProxyResource, RestApi, VpcLink } from 'aws-cdk-lib/aws-apigateway';
 import { AlbListenerTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets';
 import { CommonStackProps, deriveAffix, deriveResourceName } from '../commons/utils';
 import { IBaseConstructs } from './base';
 
 
 /*
-class ServiceStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: AppGwDistributedServiceProps) {
-    super(scope, id, props);
-    const baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, props)
-    const service = new AppGwDistributedService(this, `${id}-service`, props, baseConstructs);
-  }
+export interface ServiceStackProps extends AppGwDistributedServiceProps {
+  readonly logsBucketOn: boolean;
 }
 
-const app = new cdk.App();
-const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
-
-const props: AppGwDistributedServiceProps = {
-  crossRegionReferences: true,
-  organisation: "nn",
-  department: "dsss",
-  solution: "testdsrv",
-  env: environment,
-  tags: {
+  class ServiceStack extends cdk.Stack {
+    constructor(scope: Construct, id: string, props: ServiceStackProps) {
+      super(scope, id, props);
+      const baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, props)
+      const service = new AppGwDistributedService(this, `${id}-service`, props, baseConstructs);
+    }
+  }
+  
+  const app = new cdk.App();
+  const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
+  
+  const props: ServiceStackProps = {
+    logsBucketOn: true,
     organisation: "nn",
     department: "dsss",
     solution: "testdsrv",
-    environment: environment.name,
-  },
-  stackName: "ServiceStack",
-  docker: {
-    // imageUri: "strm/helloworld-http",
-    dockerfileDir: path.join(__dirname, "../../resources/docker/streamlit-frontend")
+    env: environment,
+    tags: {
+      organisation: "nn",
+      department: "dsss",
+      solution: "testdsrv",
+      environment: environment.name,
+    },
+    stackName: "ServiceStack",
+    docker: {
+      imageUri: "strm/helloworld-http",
+      // dockerfileDir: path.join(__dirname, "../../resources/docker/streamlit-frontend")
+    }
   }
-}
-
-new ServiceStack(app, "ServiceStack", props)
+  
+  new ServiceStack(app, "ServiceStack", props);
 */
 
 export interface AppGwDistributedServiceProps extends CommonStackProps {
@@ -83,6 +87,9 @@ export class AppGwDistributedService extends Construct implements IAppGwDistribu
   constructor(scope: Construct, id: string, props: AppGwDistributedServiceProps, baseConstructs: IBaseConstructs) {
     super(scope, id);
 
+    if(baseConstructs.logsBucket === undefined){
+      throw Error("must provide bucket for logs in base construct");
+    }
     this.baseConstructs = baseConstructs;
 
     // // --- container image ---
@@ -184,7 +191,8 @@ export class AppGwDistributedService extends Construct implements IAppGwDistribu
       taskDefinition: this.taskDefinition,
       openListener: false,
     });
-    this.fargateService.loadBalancer.addSecurityGroup(serviceSecurityGroupApp)
+    this.fargateService.loadBalancer.addSecurityGroup(serviceSecurityGroupApp);
+    this.fargateService.loadBalancer.logAccessLogs(baseConstructs.logsBucket!, "lb");
 
     // --- vpc link ---
     
@@ -238,43 +246,31 @@ export class AppGwDistributedService extends Construct implements IAppGwDistribu
       }
     });
 
-    const ui_integration = new Integration({
+    const defaultIntegration = new Integration({
       type: IntegrationType.HTTP_PROXY,
       integrationHttpMethod: 'ANY',
       options: {
         connectionType: ConnectionType.VPC_LINK,
         vpcLink: vpcLink2Nlb,
         passthroughBehavior: PassthroughBehavior.WHEN_NO_MATCH,
-        
-        // integrationResponses: [
-        //   { statusCode: '200',
-        //     responseParameters: {
-        //     "method.response.header.Content-Type": "integration.response.header.Content-Type",
-        //     },
-        //     responseTemplates: {
-        //       'text/html': "$input.path('$')",
-        //       'text/css': "$input.path('$')",
-        //       'application/json': "$input.path('$')",
-        //     }
-        //   }
-        // ],
+        requestParameters: {
+          "integration.request.path.proxy": "method.request.path.proxy"
+        }
       },
     });
 
-    const ui_method_options = { apiKeyRequired: false, 
+    const defaultMethodOptions = {
+      apiKeyRequired: false, 
       authorizationType: AuthorizationType.NONE,
-      methodResponses: [
-        {
-          statusCode: '200',
-          responseParameters: {
-            "method.response.header.Content-Type": true
-          },
-        },
-      ],
-    }
-
-    const root_methods = this.api.root.addMethod('ANY', ui_integration, ui_method_options);
-    this.api.root.addResource("{proxy+}").addMethod('ANY', ui_integration, ui_method_options)
+      requestParameters: {
+        "method.request.path.proxy": true
+      }
+    };
+    const proxyResource = new ProxyResource(this, `${id}-proxyResource`, {
+      parent: this.api.root,
+      anyMethod: false
+    });
+    proxyResource.addMethod("ANY", defaultIntegration, defaultMethodOptions);
 
     const api_plan = this.api.addUsagePlan(`${id}-usagePlan`, {
       name: `${props.solution}-ApiUsagePlan`,

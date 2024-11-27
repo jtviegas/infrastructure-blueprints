@@ -30,6 +30,5 @@ export { AppGwDistributedService, AppGwDistributedServiceProps, IAppGwDistribute
 
 export { AppGwDistributedSpa, AppGwDistributedSpaProps, IAppGwDistributedSpa } from "./constructs/appGwDistributedSpa"
 
-export { AppGwDistributedServicePublic } from "./constructs/apiGwProxyedService";
 
 
