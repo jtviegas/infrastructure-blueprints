@@ -9,12 +9,35 @@ import {
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import { ApplicationProtocol, ApplicationProtocolVersion } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { AccessLogFormat, AuthorizationType, ConnectionType, Cors, HttpIntegration, LogGroupLogDestination, PassthroughBehavior, Period, ProxyResource, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { deriveAffix, deriveResourceName } from '../commons/utils';
+import { CommonStackProps, deriveAffix, deriveResourceName } from '../commons/utils';
 import { IBaseConstructs } from './base';
 import { AppGwDistributedServiceProps, IAppGwDistributedService } from './appGwDistributedService';
 
+export interface ApiGwProxyedServiceProps extends CommonStackProps {
 
-export class AppGwDistributedServicePublic extends Construct implements IAppGwDistributedService {
+  readonly docker:{
+    readonly imageUri?: string;
+    readonly dockerfileDir?: string; // we assume Platform.LINUX_AMD64 by default
+  }
+  readonly capacity?: {
+    readonly cpuUnits?: number; // default: 512, check: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs_patterns.ApplicationLoadBalancedFargateService.html#cpu
+    readonly desiredCount?: number; // default: 1, check: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs_patterns.ApplicationLoadBalancedFargateService.html#desiredcount
+    readonly ephemeralStorageGiB?: number; default: 21, // check: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs_patterns.ApplicationLoadBalancedFargateService.html#ephemeralstoragegib
+    readonly memoryLimitMiB?: number; // default: 1024, check: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs_patterns.ApplicationLoadBalancedFargateService.html#memorylimitmib
+    readonly maxCountPercentageThreshold?: number; // default: 100, check: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs_patterns.ApplicationLoadBalancedFargateService.html#maxhealthypercent
+    readonly minCountPercentageThreshold?: number; // default: 0, check: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs_patterns.ApplicationLoadBalancedFargateService.html#minhealthypercent
+  }
+}
+
+export interface IApiGwProxyedService {
+  readonly cluster: Cluster;
+  readonly taskDefinition: FargateTaskDefinition;
+  readonly fargateService: ApplicationLoadBalancedFargateService;
+  readonly api: RestApi;
+  readonly baseConstructs: IBaseConstructs;
+}
+
+export class ApiGwProxyedService extends Construct implements IApiGwProxyedService {
 
   readonly cluster: Cluster;
   readonly taskDefinition: FargateTaskDefinition;
@@ -22,7 +45,7 @@ export class AppGwDistributedServicePublic extends Construct implements IAppGwDi
   readonly api: RestApi;
   readonly baseConstructs: IBaseConstructs;
 
-  constructor(scope: Construct, id: string, props: AppGwDistributedServiceProps, baseConstructs: IBaseConstructs) {
+  constructor(scope: Construct, id: string, props: ApiGwProxyedServiceProps, baseConstructs: IBaseConstructs) {
     super(scope, id);
 
     this.baseConstructs = baseConstructs;
@@ -31,6 +54,7 @@ export class AppGwDistributedServicePublic extends Construct implements IAppGwDi
     if((props.docker.dockerfileDir === undefined) && (props.docker.imageUri === undefined)){
       throw Error("must provide one of the docker arguments");
     }
+    
     let dockerImageUri: string;
     if(props.docker.dockerfileDir !== undefined){
       const imageAsset: DockerImageAsset = new DockerImageAsset(this, `${id}-image`, {
@@ -154,61 +178,26 @@ export class AppGwDistributedServicePublic extends Construct implements IAppGwDi
       }
     });
 
-    // const ui_integration = new HttpIntegration( 
-    //   `http://${this.fargateService.loadBalancer.loadBalancerDnsName}/`
-    //    , {
-    //     proxy: true,
-    //   httpMethod: 'ANY',
-    //   options: {
-    //     connectionType: ConnectionType.INTERNET,
-    //     passthroughBehavior: PassthroughBehavior.WHEN_NO_MATCH,
-    //   },
-      
-    // });
-    // const ui_method_options = { apiKeyRequired: false, 
-    //   authorizationType: AuthorizationType.NONE,
-
-    //   methodResponses: [
-    //     {
-    //       statusCode: '200',
-    //       responseParameters: {
-    //         "method.response.header.Content-Type": true
-    //       },
-    //     },
-    //   ],
-    //   integrationResponses: [
-    //     { statusCode: '200',
-    //       responseParameters: {
-    //         "method.response.header.Content-Type": "integration.response.header.Content-Type",
-    //       },
-    //       responseTemplates: {
-    //         'text/html': "$input.path('body')",
-    //       }
-    //     }
-    //   ],
-    // }
-
-
-    //const root_methods = this.api.root.addMethod('ANY', ui_integration, ui_method_options);
-    //"{proxy+}"
-
-    const proxyResource = new ProxyResource(this, `${id}-proxyResource`, {
-      parent: this.api.root,
-      anyMethod: false,
-    });
-
-    proxyResource.addMethod("GET", new HttpIntegration(`http://${this.fargateService.loadBalancer.loadBalancerDnsName}/{proxy}`, {
+    const defaultIntegration = new HttpIntegration(`http://${this.fargateService.loadBalancer.loadBalancerDnsName}/{proxy}`, {
       proxy: true,
       options: {
         requestParameters: {
           "integration.request.path.proxy": "method.request.path.proxy"
         }
       }
-    }), {
+    });
+    const defaultMethodOptions = {
+      apiKeyRequired: false, 
+      authorizationType: AuthorizationType.NONE,
       requestParameters: {
         "method.request.path.proxy": true
       }
+    };
+    const proxyResource = new ProxyResource(this, `${id}-proxyResource`, {
+      parent: this.api.root,
+      anyMethod: false
     });
+    proxyResource.addMethod("GET", defaultIntegration, defaultMethodOptions);
 
     const api_plan = this.api.addUsagePlan(`${id}-usagePlan`, {
       name: `${props.solution}-ApiUsagePlan`,
