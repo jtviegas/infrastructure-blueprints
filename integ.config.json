@@ -1,0 +1,9 @@
+{
+  "maxWorkers": 10,
+  "parallelRegions": [
+    "eu-north-1"
+  ],
+  "language": "typescript",
+  "verbose": true,
+  "inspectFailures": true
+}

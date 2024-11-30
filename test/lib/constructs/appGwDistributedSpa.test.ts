@@ -1,7 +1,6 @@
-import { Capture, Match, Template } from "aws-cdk-lib/assertions";
+import { Template } from "aws-cdk-lib/assertions";
 import * as cdk from "aws-cdk-lib";
-import * as sns from "aws-cdk-lib/aws-sns";
-import {BaseConstructs, DistributedService, DistributedServiceProps, BaseConstructsProps, CLOUDFRONT_PREFIX_LIST, AppGwDistributedServiceProps, AppGwDistributedService, AppGwDistributedSpa, AppGwDistributedSpaProps} from "../../../src";
+import { BaseConstructs, AppGwDistributedSpa } from "../../../src";
 const path = require("path")
 const util = require("util")
 
@@ -10,26 +9,26 @@ describe("AppGwDistributedSpaStack", () => {
     const app = new cdk.App();
     const testStack = new cdk.Stack(app, "TestStack");
 
-    const baseProps: BaseConstructsProps = {
+    const props = {
       logsBucketOn: true,
       organisation: "corp",
       department: "main",
       solution: "abc",
-      env: { name: "dev", region: "eu-north-1", account: "123456", domain: {name: "site.com", private: false} }
-    }
-    const props: AppGwDistributedSpaProps = {
-      ...baseProps,
-      docker: {
-        dockerfileDir: path.join(__dirname, "../../resources/docker/hellosrv")
-      },
+      env: { name: "dev", region: "eu-north-1", account: "123456", domain: {name: "site.com", private: false} },
       cloudfront_cidrs: ["10.0.0.0/24"],
-      domain: "justit.site.com"
+      domain: "justit.site.com",
+      lambdas: [{
+        name: "hello",
+        image: { dockerfileDir: path.join(__dirname, "../../resources/docker/hellosrv") },
+      }],
+      resources: [{methods: [{method: "GET", lambda: "hello"}]}]
     }
-    const base = new BaseConstructs(testStack, "baseconstructs", baseProps)
+
+    const base = new BaseConstructs(testStack, "baseconstructs", props)
     const service = new AppGwDistributedSpa(testStack, "service", base, props);
     const template = Template.fromStack(testStack);
 
-    console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
+    // console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
 
     template.hasResourceProperties("AWS::S3::Bucket", {
       BucketName: 'abc-dev-eunorth1-bucket-spa'
@@ -40,9 +39,7 @@ describe("AppGwDistributedSpaStack", () => {
     });
 
     template.hasResourceProperties("AWS::Lambda::Function", {
-      FunctionName: 'abc-dev-eunorth1-backend',
-      MemorySize: 10240,
-      Timeout: 900
+      FunctionName: 'abc-dev-eunorth1-hello',
     });
 
     template.hasResourceProperties("AWS::EC2::SecurityGroup", {

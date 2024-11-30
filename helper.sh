@@ -97,7 +97,7 @@ export TEST_FRONTEND_DIR="${this_folder}/test/resources/frontend"
 cdk_global_reqs(){
   info "[cdk_global_reqs|in]"
   #info "[cdk_global_reqs] installing: typescript@${TYPESCRIPT_VERSION} and aws-cdk@${CDK_VERSION}"
-  npm install -g "typescript@${TYPESCRIPT_VERSION}" "aws-cdk@${CDK_VERSION}" 
+  npm install -g "typescript@${TYPESCRIPT_VERSION}" "aws-cdk@${CDK_VERSION}" ts-node @aws-cdk/integ-runner @aws-cdk/integ-tests-alpha
   result="$?"
   [ "$result" -ne "0" ] && err "[cdk_global_reqs|out]  => ${result}" && exit 1
   info "[cdk_global_reqs|out] => ${result}"

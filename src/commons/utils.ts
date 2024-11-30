@@ -1,11 +1,12 @@
 import * as CustomResource from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
-import { StackProps, Arn, Stack, Token, IResolvable } from "aws-cdk-lib";
-import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
-import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { CfnPrefixList } from 'aws-cdk-lib/aws-ec2';
+import { Arn, Stack, Duration } from "aws-cdk-lib";
+import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as fs from 'fs';
+import { DockerImageCode, DockerImageFunction, IFunction } from 'aws-cdk-lib/aws-lambda';
+import { IBaseConstructs } from '../constructs/base';
+import { IAuthorizer, RequestAuthorizer } from 'aws-cdk-lib/aws-apigateway';
+import { AuthorizerSpec, CommonStackProps, LambdaResourceSpec, SSMParameterReaderProps } from './props';
 
 export function removeNonTextChars(str: string): string {
   return str.replace(/[^a-zA-Z0-9\s]/g, '');
@@ -59,39 +60,6 @@ export function read_cidrs(file: string): string[] {
   return result
 }
 
-export interface DockerImageSpec {
-  apiImage: DockerImageAsset;
-  dockerfileDir: string; // we assume Platform.LINUX_AMD64 by default
-}
-
-export interface VpcLookupAttributes {
-  readonly vpcId: string;
-  readonly vpcName: string;
-}
-
-export interface SysEnv {
-  readonly name: string;
-  readonly region: string;
-  readonly account: string;
-  readonly domain?: {
-    name: string;
-    private: boolean;
-  },
-  readonly vpc?: VpcLookupAttributes;
-}
-
-export interface CommonStackProps extends StackProps {
-  readonly env: SysEnv;
-  readonly organisation: string;
-  readonly department: string;
-  readonly solution: string;
-}
-
-export interface SSMParameterReaderProps {
-  parameterName: string;
-  region: string;
-}
-
 export class SSMParameterReader extends CustomResource.AwsCustomResource {
   constructor(scope: Construct, name: string, props: SSMParameterReaderProps) {
     const { parameterName, region } = props;
@@ -127,4 +95,48 @@ export class SSMParameterReader extends CustomResource.AwsCustomResource {
   public getParameterValue(): string {
     return this.getResponseField('Parameter.Value').toString();
   }
+}
+
+export function spec2Authorizer(scope: Construct, id: string, baseConstructs: IBaseConstructs
+  , functions: Map<string,IFunction>, spec: AuthorizerSpec): IAuthorizer {
+  return new RequestAuthorizer(scope, `${id}-authorizer-${spec.name}`, {
+    handler: functions.get(spec.lambda)!,
+    resultsCacheTtl: spec.resultsCacheTtl === undefined ? Duration.hours(0) : spec.resultsCacheTtl,
+    identitySources: spec.identitySources === undefined ? [] : spec.identitySources,
+    assumeRole: baseConstructs.role,
+    authorizerName: spec.name
+  });
+}
+
+export function lambdaSpec2DockerImageAsset(scope: Construct, id: string, spec: LambdaResourceSpec): DockerImageAsset {
+
+  if (spec.image.apiImage !== undefined){
+    return spec.image.apiImage!;
+  }
+  else {
+    return new DockerImageAsset(scope, `${id}-image-${spec.name}`, {
+      directory: spec.image.dockerfileDir!,
+      platform: Platform.LINUX_AMD64,
+    });
+  }
+}
+
+export function lambdaSpec2Function(scope: Construct, id: string, baseConstructs: IBaseConstructs, 
+  props: CommonStackProps, spec: LambdaResourceSpec): IFunction {
+  let result: DockerImageFunction;
+  const imageAsset: DockerImageAsset = lambdaSpec2DockerImageAsset(scope, id, spec);
+  imageAsset.repository.grantPullPush(baseConstructs.role);
+  result = new DockerImageFunction(scope, `${id}-function-${spec.name}`, {
+    code: DockerImageCode.fromEcr(imageAsset.repository, {
+      tagOrDigest: spec.imageTag !== undefined ? spec.imageTag : 'latest'
+    }),
+    functionName: deriveResourceName(props, spec.name),
+    memorySize: spec.memory,
+    ephemeralStorageSize: spec.storage,
+    timeout: spec.timeout,
+    logGroup: baseConstructs.logGroup,
+    role: baseConstructs.role,
+    vpc: baseConstructs.vpc
+  });
+  return result;
 }

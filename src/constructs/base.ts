@@ -6,7 +6,8 @@ import { IKey, Key } from 'aws-cdk-lib/aws-kms';
 import { ILogGroup, LogGroup } from 'aws-cdk-lib/aws-logs';
 import { Bucket, IBucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import { CommonStackProps, deriveParameterPrefix, deriveResourceName, VpcLookupAttributes } from '../commons/utils';
+import { deriveResourceName } from '../commons/utils';
+import { CommonStackProps, VpcLookupAttributes } from '../commons/props';
 
 /*
 class BaseStack extends cdk.Stack {

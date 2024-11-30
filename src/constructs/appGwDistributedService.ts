@@ -8,10 +8,11 @@ import {
 } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import { ApplicationProtocol, ApplicationProtocolVersion, NetworkListenerAction, NetworkLoadBalancer, NetworkTargetGroup, Protocol as LbProtocol } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { AccessLogFormat, AuthorizationType, ConnectionType, Cors, HttpIntegration, Integration, IntegrationType, LogGroupLogDestination, PassthroughBehavior, Period, ProxyResource, RestApi, VpcLink } from 'aws-cdk-lib/aws-apigateway';
+import { AccessLogFormat, AuthorizationType, ConnectionType, Cors, Integration, IntegrationType, LogGroupLogDestination, PassthroughBehavior, Period, ProxyResource, RestApi, VpcLink } from 'aws-cdk-lib/aws-apigateway';
 import { AlbListenerTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets';
-import { CommonStackProps, deriveAffix, deriveResourceName } from '../commons/utils';
+import { deriveAffix, deriveResourceName } from '../commons/utils';
 import { IBaseConstructs } from './base';
+import { CommonStackProps } from '../commons/props';
 
 
 /*

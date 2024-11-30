@@ -1,7 +1,6 @@
-import { Capture, Match, Template } from "aws-cdk-lib/assertions";
+import { Template } from "aws-cdk-lib/assertions";
 import * as cdk from "aws-cdk-lib";
-import * as sns from "aws-cdk-lib/aws-sns";
-import {BaseConstructs, DistributedService, DistributedServiceProps, BaseConstructsProps, CLOUDFRONT_PREFIX_LIST, AppGwDistributedServiceProps, AppGwDistributedService} from "../../../src";
+import { BaseConstructs, AppGwDistributedServiceProps, AppGwDistributedService } from "../../../src";
 const util = require("util")
 
 describe("AppGwDistributedServiceStack", () => {

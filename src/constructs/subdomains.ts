@@ -6,7 +6,8 @@ import { Construct } from 'constructs';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { ParameterDataType, ParameterTier, StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
-import { CommonStackProps, deriveOutput, deriveParameter, removeNonTextChars, VpcLookupAttributes } from '../commons/utils';
+import { deriveOutput, deriveParameter, removeNonTextChars } from '../commons/utils';
+import { CommonStackProps, VpcLookupAttributes } from '../commons/props';
 
 /*
 class SubdomainsStack extends cdk.Stack {

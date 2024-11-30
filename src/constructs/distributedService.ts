@@ -12,8 +12,9 @@ import { AllowedMethods, CachePolicy, Distribution, OriginProtocolPolicy, Origin
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CLOUDFRONT_PREFIX_LIST, DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
-import { CommonStackProps, deriveAffix, deriveParameter, deriveResourceName, removeNonTextChars, SSMParameterReader } from '../commons/utils';
+import { deriveAffix, deriveParameter, deriveResourceName, removeNonTextChars, SSMParameterReader } from '../commons/utils';
 import { IBaseConstructs } from './base';
+import { CommonStackProps } from '../commons/props';
 
 
 /*
