@@ -39,7 +39,6 @@ const stackUnderTest = new StackUnderTest(app, props.stackName!, props)
 const integ = new IntegTest(app, 'IntegTest', {
   testCases: [stackUnderTest],
   cdkCommandOptions: {
-    // Customize the integ-runner parameters
     destroy: {
       args: {
         force: true,
@@ -49,7 +48,7 @@ const integ = new IntegTest(app, 'IntegTest', {
   regions: [props.env.region],
 });
 
-console.log(util.inspect(stackUnderTest.finder.getPrefixListId()));
+//console.log(util.inspect(stackUnderTest.finder.getPrefixListId()));
 
 
 
