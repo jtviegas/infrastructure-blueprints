@@ -3,27 +3,27 @@ import { Construct } from 'constructs';
 import { PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
-export interface PrefixListFinderProps {
-  readonly prefixListName: string;
+export interface PrefixListIpFinderProps {
+  readonly prefixListId: string;
 }
 
-export class PrefixListFinder extends CustomResource.AwsCustomResource {
+export class PrefixListIpFinder extends CustomResource.AwsCustomResource {
 
-  constructor(scope: Construct, name: string, props: PrefixListFinderProps) {
+  constructor(scope: Construct, name: string, props: PrefixListIpFinderProps) {
 
     const parameters: any = {};
-    parameters["Filters"] =  [{"Name": "prefix-list-name", "Values": [props.prefixListName]}];
+    parameters["PrefixListId"] =  props.prefixListId;
 
     const call: CustomResource.AwsSdkCall = {
       service: "EC2",
-      action: "describeManagedPrefixLists",
+      action: "getManagedPrefixListEntries",
       parameters: parameters,
       physicalResourceId: PhysicalResourceId.of(Date.now().toString()),
       
     };
     const policy = CustomResource.AwsCustomResourcePolicy.fromStatements([
         new PolicyStatement({
-          actions: ["ec2:DescribeManagedPrefixLists"],
+          actions: ["ec2:GetManagedPrefixListEntries"],
           resources: ["*"],
         }),
       ],
@@ -36,8 +36,8 @@ export class PrefixListFinder extends CustomResource.AwsCustomResource {
   // outputs=$(aws ec2 get-managed-prefix-list-entries --prefix-list-id "$prefix_list_id" --output json)
   // echo $outputs | jq -r ".\"Entries\"" > "$output_file"
   
-  public getPrefixListId(): string {
-    return this.getResponseField(`PrefixLists.0.PrefixListId`);
+  public getCidrs(): string {
+    return this.getResponseField(`Entries.*.Cidr`);
   }
 }
 

@@ -422,7 +422,7 @@ cdk_infra()
     info "[cdk_infra] assuming default infra folder: ${DEFAULT_INFRA_DIR}"
   fi
 
-  if [ ! -z $3 ]; then
+  if [ ! -z "$3" ]; then
     local stacks="$3"
   else
     local stacks="--all"

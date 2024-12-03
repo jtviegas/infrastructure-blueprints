@@ -3,7 +3,5 @@
   "parallelRegions": [
     "eu-north-1"
   ],
-  "language": "typescript",
-  "verbose": true,
-  "inspectFailures": true
+  "language": "typescript"
 }

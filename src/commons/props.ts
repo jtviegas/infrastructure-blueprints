@@ -4,8 +4,10 @@ import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 
 
 export interface DockerImageSpec {
-  readonly apiImage: DockerImageAsset;
+  //readonly apiImage: DockerImageAsset;
   readonly dockerfileDir: string; // we assume Platform.LINUX_AMD64 by default
+  readonly buildArgs?: { [key: string]: string; };
+
 }
 
 export interface VpcLookupAttributes {
@@ -45,7 +47,7 @@ export interface AuthorizerSpec {
 
 export interface LambdaResourceSpec {
   readonly name: string;
-  readonly image: Partial<DockerImageSpec>;
+  readonly image: DockerImageSpec;
   readonly imageTag?: string;
   readonly memory?: number;
   readonly storage?: Size;

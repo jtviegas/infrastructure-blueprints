@@ -9,11 +9,12 @@ import { AllowedMethods, CachePolicy, Distribution, IDistribution, OriginRequest
 import { AuthorizationType, Cors, IAuthorizer, LambdaIntegration, LogGroupLogDestination, MethodLoggingLevel, PassthroughBehavior, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { deriveAffix, deriveParameter, deriveResourceName, lambdaSpec2Function, removeNonTextChars, spec2Authorizer, SSMParameterReader } from '../commons/utils';
 import { IBaseConstructs } from './base';
-import { DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
+import { CLOUDFRONT_PREFIX_LIST_NAME, DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, PublicHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { ApiResourceSpec, AuthorizerSpec, CommonStackProps, DockerImageSpec, LambdaResourceSpec } from '../commons/props';
+import { PrefixListFinder } from '../commons/prefixListFinder';
 
 
 export interface AppGwDistributedSpaProps extends CommonStackProps {
@@ -101,7 +102,6 @@ export class AppGwDistributedSpa extends Construct implements IAppGwDistributedS
         this.authorizers.set(authorizer.name, spec2Authorizer(this, id, baseConstructs, this.functions, authorizer));
       }
     }
-    
 
     // ------- app gateway -------
     this.api = new RestApi(this, `${id}-api`, {
@@ -184,7 +184,6 @@ export class AppGwDistributedSpa extends Construct implements IAppGwDistributedS
       originAccessControlName: `${deriveAffix(props)}-spaOAC`,
       signing: Signing.SIGV4_ALWAYS
     });
-
     const s3SpaOrigin = S3BucketOrigin.withOriginAccessControl(this.bucketSpa, s3SpaOriginAccessControl);
     const ApiSpaOrigin = new RestApiOrigin(this.api);
 

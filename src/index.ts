@@ -1,5 +1,9 @@
 
-export {DNS_GLOBAL_RESOURCES_REGION, CLOUDFRONT_PREFIX_LIST} from "./commons/constants";
+export {
+  DNS_GLOBAL_RESOURCES_REGION, 
+  CLOUDFRONT_PREFIX_LIST, 
+  CLOUDFRONT_PREFIX_LIST_NAME
+} from "./commons/constants";
 export {VpcLookupAttributes, ApiResourceMethodSpec, ApiResourceSpec, 
   AuthorizerSpec, CommonStackProps, DockerImageSpec, LambdaResourceSpec, 
   SSMParameterReaderProps, SysEnv} from "./commons/props";
@@ -16,8 +20,7 @@ export {
   , SSMParameterReader
   , capitalizeFirstLetter
   , removeNonTextChars
-  , read_cidrs
-  , lambdaSpec2DockerImageAsset, 
+  , read_cidrs,
   lambdaSpec2Function, 
   spec2Authorizer
 } from "./commons/utils";

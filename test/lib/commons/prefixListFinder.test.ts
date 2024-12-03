@@ -1,28 +1,41 @@
 import * as cdk from "aws-cdk-lib";
 const util = require("util")
-import { EC2Client, DescribeManagedPrefixListsCommand } from "@aws-sdk/client-ec2"; // ES Modules import
+import {
+  EC2Client, GetManagedPrefixListEntriesCommand,
+  DescribeManagedPrefixListsCommand
+} from "@aws-sdk/client-ec2"; // ES Modules import
+import { CLOUDFRONT_PREFIX_LIST } from "../../../src";
 
 
- describe("commons utils", async () => {
-  test("methods work as expected", async () => {
+describe("commons utils", async () => {
+
+  test("DescribeManagedPrefixListsCommand work as expected", async () => {
 
     const client = new EC2Client({});
-    const input = { // DescribeManagedPrefixListsRequest
-      // DryRun: true || false,
-      Filters: [ // FilterList
-        { // Filter
+    const input = {
+      Filters: [
+        { 
           Name: "prefix-list-name",
-          Values: [ "com.amazonaws.global.cloudfront.origin-facing" ],
+          Values: ["com.amazonaws.global.cloudfront.origin-facing"],
         },
-      ],
-      // PrefixListIds: [
-      //   "STRING_VALUE",
-      // ],
+      ]
     };
     const command = new DescribeManagedPrefixListsCommand(input);
     const response = await client.send(command);
+    //console.log(util.inspect(response))
+  })
+
+  test("GetManagedPrefixListEntriesCommand work as expected", async () => {
+
+    const client = new EC2Client({});
+    const input = {
+      PrefixListId: CLOUDFRONT_PREFIX_LIST
+    };
+    const command = new GetManagedPrefixListEntriesCommand(input);
+    const response = await client.send(command);
     console.log(util.inspect(response))
-})
+  })
+
 })
 
 

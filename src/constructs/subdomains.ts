@@ -63,50 +63,52 @@ export interface SubdomainsProps extends CommonStackProps {
 
 export interface ISubdomains {
   readonly hostedZoneDomain: IHostedZone;
-  readonly hostedZoneSubdomains: IHostedZone[]; 
+  readonly hostedZoneSubdomains: IHostedZone[];
 }
 
 export class Subdomains extends Construct implements ISubdomains {
 
   readonly hostedZoneDomain: IHostedZone;
-  readonly hostedZoneSubdomains: IHostedZone[]; 
+  readonly hostedZoneSubdomains: IHostedZone[];
 
   constructor(scope: Construct, id: string, props: SubdomainsProps) {
     super(scope, id);
-    if( props.env.region != DNS_GLOBAL_RESOURCES_REGION ){
+    if (props.env.region != DNS_GLOBAL_RESOURCES_REGION) {
       throw new Error(`region must be: ${DNS_GLOBAL_RESOURCES_REGION}`)
     }
-    if( props.env.domain === undefined ){
-      throw new Error("the domain must be defined in sytem environment" )
+    if (props.env.domain === undefined) {
+      throw new Error("the domain must be defined in sytem environment")
     }
 
     this.hostedZoneSubdomains = [];
-    if ((props.crossRegionReferences === undefined) || (props.crossRegionReferences === false)){
+    if ((props.crossRegionReferences === undefined) || (props.crossRegionReferences === false)) {
       throw new Error("please allow crossRegionReferences")
     }
-    this.hostedZoneDomain = HostedZone.fromLookup(this, 
-      `${id}-${removeNonTextChars(props.env.domain.name)}-hz`, 
-      {domainName: props.env.domain.name, 
-        privateZone: props.env.domain.private ? props.env.domain.private : false});
+    this.hostedZoneDomain = HostedZone.fromLookup(this,
+      `${id}-${removeNonTextChars(props.env.domain.name)}-hz`,
+      {
+        domainName: props.env.domain.name,
+        privateZone: props.env.domain.private ? props.env.domain.private : false
+      });
 
-    for(const subdomain of props.subdomains){
+    for (const subdomain of props.subdomains) {
       let idAffix = `${id}-${removeNonTextChars(subdomain.name)}`
 
       let hostedZone = null;
-      if ((subdomain.private === undefined) ||  (subdomain.private === false)){
-        hostedZone = new PublicHostedZone(this, 
+      if ((subdomain.private === undefined) || (subdomain.private === false)) {
+        hostedZone = new PublicHostedZone(this,
           `${idAffix}-hz`, {
           zoneName: subdomain.name
         })
       }
       else {
-        if (subdomain.vpc === undefined){
+        if (subdomain.vpc === undefined) {
           throw new Error("must provide vpc info when creating a private zone")
         }
 
         const vpc = Vpc.fromLookup(this, `${idAffix}-vpc`, subdomain.vpc)
 
-        hostedZone = new PrivateHostedZone(this, 
+        hostedZone = new PrivateHostedZone(this,
           `${idAffix}-hz`, {
           zoneName: subdomain.name,
           vpc: vpc
@@ -120,8 +122,10 @@ export class Subdomains extends Construct implements ISubdomains {
         tier: ParameterTier.STANDARD,
         dataType: ParameterDataType.TEXT
       }).applyRemovalPolicy(RemovalPolicy.DESTROY);
-      new cdk.CfnOutput(this, `${idAffix}-outputHostedZoneId`, {value: hostedZone.hostedZoneId,
-        exportName: deriveOutput(props, `${removeNonTextChars(subdomain.name)}-hostedZoneId`)});
+      new cdk.CfnOutput(this, `${idAffix}-outputHostedZoneId`, {
+        value: hostedZone.hostedZoneId,
+        exportName: deriveOutput(props, `${removeNonTextChars(subdomain.name)}-hostedZoneId`)
+      });
 
       new StringParameter(this, `${idAffix}-paramHostedZoneArn`, {
         parameterName: deriveParameter(props, `${removeNonTextChars(subdomain.name)}/hostedZoneArn`),
@@ -129,8 +133,10 @@ export class Subdomains extends Construct implements ISubdomains {
         tier: ParameterTier.STANDARD,
         dataType: ParameterDataType.TEXT
       }).applyRemovalPolicy(RemovalPolicy.DESTROY);
-      new cdk.CfnOutput(this, `${idAffix}-outputHostedZoneArn`, {value: hostedZone.hostedZoneArn,
-        exportName: deriveOutput(props, `${removeNonTextChars(subdomain.name)}-hostedZoneArn`)});
+      new cdk.CfnOutput(this, `${idAffix}-outputHostedZoneArn`, {
+        value: hostedZone.hostedZoneArn,
+        exportName: deriveOutput(props, `${removeNonTextChars(subdomain.name)}-hostedZoneArn`)
+      });
 
       let nsRecord = new NsRecord(this, `${idAffix}-nsRecord`, {
         zone: this.hostedZoneDomain,
@@ -140,7 +146,7 @@ export class Subdomains extends Construct implements ISubdomains {
       });
       nsRecord.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
-      if ((subdomain.createCertificate !== undefined) && (subdomain.createCertificate === true)){
+      if ((subdomain.createCertificate !== undefined) && (subdomain.createCertificate === true)) {
         let certificate = new Certificate(this, `${idAffix}-certificate`, {
           domainName: subdomain.name,
           certificateName: subdomain.name,
@@ -153,12 +159,14 @@ export class Subdomains extends Construct implements ISubdomains {
           tier: ParameterTier.STANDARD,
           dataType: ParameterDataType.TEXT
         }).applyRemovalPolicy(RemovalPolicy.DESTROY);
-        new cdk.CfnOutput(this, `${idAffix}-outputCertificateArn`, {value: certificate.certificateArn,
-          exportName: deriveOutput(props, `${removeNonTextChars(subdomain.name)}-certificateArn`)});
+        new cdk.CfnOutput(this, `${idAffix}-outputCertificateArn`, {
+          value: certificate.certificateArn,
+          exportName: deriveOutput(props, `${removeNonTextChars(subdomain.name)}-certificateArn`)
+        });
 
       }
-      
+
     }
-   
+
   }
 }

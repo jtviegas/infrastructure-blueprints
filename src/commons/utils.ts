@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import { Arn, Stack, Duration } from "aws-cdk-lib";
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as fs from 'fs';
-import { DockerImageCode, DockerImageFunction, IFunction } from 'aws-cdk-lib/aws-lambda';
+import { Code, DockerImageCode, DockerImageFunction, IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IBaseConstructs } from '../constructs/base';
 import { IAuthorizer, RequestAuthorizer } from 'aws-cdk-lib/aws-apigateway';
 import { AuthorizerSpec, CommonStackProps, LambdaResourceSpec, SSMParameterReaderProps } from './props';
@@ -108,27 +108,29 @@ export function spec2Authorizer(scope: Construct, id: string, baseConstructs: IB
   });
 }
 
-export function lambdaSpec2DockerImageAsset(scope: Construct, id: string, spec: LambdaResourceSpec): DockerImageAsset {
-
-  if (spec.image.apiImage !== undefined){
-    return spec.image.apiImage!;
-  }
-  else {
-    return new DockerImageAsset(scope, `${id}-image-${spec.name}`, {
-      directory: spec.image.dockerfileDir!,
-      platform: Platform.LINUX_AMD64,
-    });
-  }
-}
+// export function lambdaSpec2DockerImageAsset(scope: Construct, id: string, spec: LambdaResourceSpec): DockerImageAsset {
+//   if (spec.image.apiImage !== undefined){
+//     return spec.image.apiImage!;
+//   }
+//   else {
+//     Code.fromImageAsset(directory, props?)()
+//     return new DockerImageAsset(scope, `${id}-image-${spec.name}`, {
+//       directory: spec.image.dockerfileDir!,
+//       platform: Platform.LINUX_AMD64,
+//     });
+//   }
+// }
 
 export function lambdaSpec2Function(scope: Construct, id: string, baseConstructs: IBaseConstructs, 
   props: CommonStackProps, spec: LambdaResourceSpec): IFunction {
   let result: DockerImageFunction;
-  const imageAsset: DockerImageAsset = lambdaSpec2DockerImageAsset(scope, id, spec);
-  imageAsset.repository.grantPullPush(baseConstructs.role);
+
   result = new DockerImageFunction(scope, `${id}-function-${spec.name}`, {
-    code: DockerImageCode.fromEcr(imageAsset.repository, {
-      tagOrDigest: spec.imageTag !== undefined ? spec.imageTag : 'latest'
+    code: DockerImageCode.fromImageAsset(spec.image.dockerfileDir, 
+      {
+      assetName: spec.name,
+      platform: Platform.LINUX_AMD64,
+      buildArgs: spec.image.buildArgs !== undefined ? spec.image.buildArgs : undefined
     }),
     functionName: deriveResourceName(props, spec.name),
     memorySize: spec.memory,

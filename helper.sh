@@ -252,6 +252,17 @@ invalidate_distribution(){
   info "[invalidate_distribution|out] => ${result}"
 }
 
+lib_integtest(){
+  info "[lib_integtest|in]"
+  _pwd=`pwd`
+  cd "$this_folder"
+  integ-runner --verbose --update-on-failed
+  result="$?"
+  cd "$_pwd"
+  [ "$result" -ne "0" ] && err "[lib_integtest|out]  => ${result}" && exit 1
+  info "[lib_integtest|out] => ${result}"
+}
+
 # -------------------------------------
 usage() {
   cat <<EOM
@@ -265,6 +276,7 @@ usage() {
       - deps:     install lib dependencies
       - test:     run library tests
       - build:    build/compile lib code
+      - integration_test: runs integration tests
       - publish:  publishes package to npm
       - get_cloudfront_cidr:  retrieves current aws region cloudfront cidr blocks list into a file
       ... infra testing section
@@ -301,6 +313,9 @@ case "$1" in
     ;;
   build)
     npm run build
+    ;;
+  integration_test)
+    lib_integtest
     ;;
   publish)
     npm_publish "$NPM_REGISTRY" "$NPM_TOKEN" "$this_folder"
