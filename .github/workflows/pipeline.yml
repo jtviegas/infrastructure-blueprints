@@ -21,7 +21,7 @@ jobs:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
   service:
     needs: library
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     if: ${{ startsWith(github.ref_name, 'infra_test_') }}
     steps:
     - uses: actions/checkout@v4
