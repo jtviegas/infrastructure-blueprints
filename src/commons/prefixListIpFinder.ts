@@ -37,7 +37,7 @@ export class PrefixListIpFinder extends CustomResource.AwsCustomResource {
   // echo $outputs | jq -r ".\"Entries\"" > "$output_file"
   
   public getCidrs(): string {
-    return this.getResponseField(`Entries.*.Cidr`);
+    return this.getResponseField(`Entries.[].Cidr`);
   }
 }
 
