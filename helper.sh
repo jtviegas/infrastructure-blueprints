@@ -306,7 +306,7 @@ case "$1" in
     update_bashutils
     ;;
   deps)
-    npm ci
+    npm install
     ;;
   test)
     npm run test
