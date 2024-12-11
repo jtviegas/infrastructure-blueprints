@@ -39,21 +39,23 @@ export interface CommonStackProps extends StackProps {
 ## BaseConstructs
 ![base](assets/base.png)
 
-### constructor interface
+### constructor properties
 ```
-export interface BaseConstructsProps extends CommonStackProps {
-  readonly logsBucketOn?: boolean;
+export interface CommonStackProps extends StackProps {
+  readonly env: SysEnv;
+  readonly organisation: string;
+  readonly department: string;
+  readonly solution: string;
 }
 ```
-### properties
+### interface
 ```
 export interface IBaseConstructs {
   readonly key: IKey;
   readonly logGroup: ILogGroup;
-  readonly logsBucket?: IBucket;
+  readonly logsBucket: IBucket;
   readonly role: IRole;
   readonly vpc: IVpc;
-  readonly getVpcLookupAttributes: Function;
 }
 ```
 ### usage example
@@ -61,13 +63,13 @@ export interface IBaseConstructs {
 class BaseStack extends cdk.Stack {
   readonly baseConstructs: IBaseConstructs;
 
-  constructor(scope: Construct, id: string, props: BaseConstructsProps) {
+  constructor(scope: Construct, id: string, props: CommonStackProps) {
     super(scope, id, props);
     this.baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, props)
   }
 }
 
-const baseProps: BaseConstructsProps = {
+const baseProps: CommonStackProps = {
   crossRegionReferences: true,
   organisation: "nn",
   department: "dsss",
@@ -79,77 +81,66 @@ const baseProps: BaseConstructsProps = {
     solution: "testdsrv",
     environment: environment.name,
   },
-  stackName: "BaseStack",
-  logsBucketOn: true
+  stackName: "BaseStack"
 }
 
 const baseStack = new BaseStack(app, "BaseStack", baseProps);
 ```
-## Subdomains
-![subdomains](assets/subdomains.png)
 
-### constructor interface
+... in the stack you could also have used the static lookup function:
+
 ```
-export interface SubdomainSpec {
-  readonly name: string;
-  readonly private?: boolean;
-  readonly createCertificate?: boolean;
-  readonly vpc?: VpcLookupAttributes
+export interface BaseConstructsLookup {
+  readonly keyArn: string;
+  readonly logGroupArn: string;
+  readonly logsBucketArn: string;
+  readonly roleArn: string;
+  readonly vpcId: string;
 }
 
-export interface SubdomainsProps extends CommonStackProps {
-  readonly subdomains: SubdomainSpec[];
-  readonly domain: {
-    readonly name: string;
-    readonly private?: boolean;
-  }
-}
+
+this.baseConstructs = BaseConstructs.fromProps(this, `${id}-baseConstructs`, props)
 ```
-### properties
-```
-export interface ISubdomains {
-  readonly hostedZoneDomain: IHostedZone;
-  readonly hostedZoneSubdomains: IHostedZone[]; 
-}
-```
+
+## PublicSubdomain
+![PublicSubdomain](assets/subdomains.png)
+
 ### usage example
 ```
-class SubdomainsStack extends cdk.Stack {
+interface SubdomainStackProps extends PublicSubdomainProps {
+  readonly lb: string;
+}
 
-  constructor(scope: Construct, id: string, props: SubdomainsProps, base: IBaseConstructs) {
+class SubdomainStack extends Stack {
+  constructor(scope: Construct, id: string, props: SubdomainStackProps) {
     super(scope, id, props);
-
-    // work out the subdomains vpc settings based on base constructs
-    const subdomainspecs = []
-    for(const subdomain of props.subdomains){
-      subdomainspecs.push({...subdomain, vpc: base.getVpcLookupAttributes()})
-    }
-    const subdomainProps: SubdomainsProps ={
-      ...props,
-      subdomains: subdomainspecs
-    }
-    const subdomains = new Subdomains(this, `${id}-subdomains`, subdomainProps)
+    new PublicSubdomain(this, `${id}PublicSubdomainUi`, props)
   }
 }
 
 const app = new cdk.App();
 const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
 
-const subdomainsProps: SubdomainsProps = {
-  ...baseProps,
-  env: {...environment, region: "us-east-1"},
-  domain: {
-    name: "site.com",
-    private: false
+const subdomainProps: SubdomainStackProps = {
+  crossRegionReferences: true,
+  organisation: "nn",
+  department: "dsss",
+  solution: "testdsrv",
+  env: {
+    ...environment,
+    region: DNS_GLOBAL_RESOURCES_REGION
   },
-  subdomains: [
-    { name: "ui.site.com", private: false, createCertificate: true}, 
-    { name: "lb.site.com", private: false, createCertificate: false}
-  ],
-  stackName: "SubdomainsStack",
+  tags: {
+    organisation: "nn",
+    department: "dsss",
+    solution: "testdsrv",
+    environment: environment.name,
+  },
+  stackName: "SubdomainStack",
+  name: "ui.jtviegas.com"
 }
 
-const subdomainsStack = new SubdomainsStack(app, "SubdomainsStack", subdomainsProps, baseStack.baseConstructs);
+const subdomainStack = new SubdomainStack(app, subdomainProps.stackName!, subdomainProps);
 
 ```
 
@@ -157,69 +148,73 @@ const subdomainsStack = new SubdomainsStack(app, "SubdomainsStack", subdomainsPr
 ## DistributedService
 ![DistributedService](assets/distributedService.png)
 
-### constructor interface
-```
-export interface DistributedServiceProps extends CommonStackProps {
-  readonly domain: {
-    readonly loadBalancer: string;
-    readonly distribution: string;
-  }
-  readonly docker:{
-    readonly imageUri?: string;
-    readonly dockerfileDir?: string; // we assume Platform.LINUX_AMD64 by default
-  }
-  readonly capacity?: {
-    readonly cpuUnits?: number; // default: 512
-    readonly desiredCount?: number; // default: 1 
-    readonly ephemeralStorageGiB?: number; default: 21
-    readonly memoryLimitMiB?: number; // default: 1024
-    readonly maxCountPercentageThreshold?: number; // default: 100
-    readonly minCountPercentageThreshold?: number; // default: 0
-  }
-}
-```
-### properties
-```
-export interface IDistributedService {
-  readonly cluster: Cluster;
-  readonly taskDefinition: FargateTaskDefinition;
-  readonly hostedZoneLoadBalancer: IHostedZone;
-  readonly fargateService: ApplicationLoadBalancedFargateService;
-  readonly distribution: Distribution;
-}
-```
 ### usage example
 ```
-class ServiceStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: DistributedServiceProps, baseConstructs: IBaseConstructs) {
+interface SubdomainStackProps extends PublicSubdomainProps {
+  readonly lb: string;
+}
+class SubdomainStack extends Stack {
+
+  constructor(scope: Construct, id: string, props: SubdomainStackProps) {
     super(scope, id, props);
-    const service = new DistributedService(this, `${id}-service`, props, baseConstructs);
+    new PublicSubdomain(this, `${id}PublicSubdomainUi`, props)
+    new PublicSubdomain(this, `${id}PublicSubdomainLb`, {...props, name: props.lb})
   }
 }
 
 const app = new cdk.App();
 const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
 
-const dsProps: DistributedServiceProps = {
-  ...subdomainsProps,
+const subdomainProps: SubdomainStackProps = {
+  crossRegionReferences: true,
+  organisation: "nn",
+  department: "dsss",
+  solution: "testdsrv",
+  env: {
+    ...environment,
+    region: DNS_GLOBAL_RESOURCES_REGION
+  },
+  tags: {
+    organisation: "nn",
+    department: "dsss",
+    solution: "testdsrv",
+    environment: environment.name,
+  },
+  stackName: "SubdomainStack",
+  name: "ui.jtviegas.com",
+  lb: "lb.jtviegas.com",
+}
+
+const subdomainStack = new SubdomainStack(app, subdomainProps.stackName!, subdomainProps);
+
+
+class DistributeServiceStack extends Stack {
+  constructor(scope: Construct, id: string, props: DistributedServiceProps) {
+    super(scope, id, props);
+    const base = new BaseConstructs(this, `${id}BaseConstructs`, props)
+    const spa = new DistributedService(this, `${id}-service`, props, base);
+  }
+}
+
+const srvProps: DistributedServiceProps = {
+  ...subdomainProps,
   env: environment,
   domain: {
-    distribution: "ui.site.com",
-    loadBalancer: "lb.site.com"
+    distribution: "ui.jtviegas.com",
+    loadBalancer: "lb.jtviegas.com"
   },
   docker: {
     imageUri: "strm/helloworld-http"
   },
   stackName: "ServiceStack",
 }
-new ServiceStack(app, "ServiceStack", dsProps, baseStack.baseConstructs)
-
+const spaStack = new DistributeServiceStack(app, srvProps.stackName!, srvProps);
 ```
 
 ## AppGwDistributedService
 ![AppGwDistributedService](assets/appGwDistributedService.png)
 
-### constructor interface
+### constructor properties
 ```
 export interface AppGwDistributedServiceProps extends CommonStackProps {
   readonly docker:{
@@ -236,7 +231,7 @@ export interface AppGwDistributedServiceProps extends CommonStackProps {
   }
 }
 ```
-### properties
+### interface
 ```
 export interface IAppGwDistributedService {
   readonly cluster: Cluster;
@@ -288,7 +283,7 @@ export interface ServiceStackProps extends AppGwDistributedServiceProps {
 ## AppGwDistributedSpa
 ![AppGwDistributedSpa](assets/appGwDistributedSpa.png)
 
-### constructor interface
+### constructor properties
 ```
 export interface DockerImageSpec {
   apiImage: DockerImageAsset;
@@ -301,7 +296,7 @@ export interface AppGwDistributedSpaProps extends CommonStackProps {
   readonly domain?: string;
 }
 ```
-### properties
+### interface
 ```
 export interface IAppGwDistributedSpa {
   readonly bucketSpa: IBucket;

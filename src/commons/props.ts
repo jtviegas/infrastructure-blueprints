@@ -21,7 +21,6 @@ export interface SysEnv {
   readonly account: string;
   readonly domain?: {
     name: string;
-    private: boolean;
   },
   readonly vpc?: VpcLookupAttributes;
 }

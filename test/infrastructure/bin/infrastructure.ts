@@ -4,24 +4,28 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import path = require('path');
 //import { AppGwDistributedSpa, AppGwDistributedSpaProps, BaseConstructs, IBaseConstructs } from '@jtviegas/cdk-blueprints';
-import { BaseConstructs, DistributedService, DistributedServiceProps, DNS_GLOBAL_RESOURCES_REGION, IPublicSubdomain, PublicSubdomain, PublicSubdomainProps, read_cidrs, SpaSolutionScaffolding, SpaSolutionScaffoldingProps, toResourceName } from '../../../src';
+import {
+  BaseConstructs, DistributedService, DistributedServiceProps, DNS_GLOBAL_RESOURCES_REGION, IPublicSubdomain,
+  PublicSubdomain, PublicSubdomainProps
+} from '../../../src';
 import { Stack } from 'aws-cdk-lib';
-import { IFunction, Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { AuthorizationType, LambdaIntegration, PassthroughBehavior } from 'aws-cdk-lib/aws-apigateway';
 
-
+interface SubdomainStackProps extends PublicSubdomainProps {
+  readonly lb: string;
+}
 class SubdomainStack extends Stack {
-  readonly subdomain: IPublicSubdomain;
-  constructor(scope: Construct, id: string, props: PublicSubdomainProps) {
+
+  constructor(scope: Construct, id: string, props: SubdomainStackProps) {
     super(scope, id, props);
-    this.subdomain = new PublicSubdomain(this, `${id}PublicSubdomain`, props)
+    new PublicSubdomain(this, `${id}PublicSubdomainUi`, props)
+    new PublicSubdomain(this, `${id}PublicSubdomainLb`, {...props, name: props.lb})
   }
 }
 
 const app = new cdk.App();
 const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
 
-const subdomainProps: PublicSubdomainProps = {
+const subdomainProps: SubdomainStackProps = {
   crossRegionReferences: true,
   organisation: "nn",
   department: "dsss",
@@ -37,7 +41,8 @@ const subdomainProps: PublicSubdomainProps = {
     environment: environment.name,
   },
   stackName: "SubdomainStack",
-  name: "test.jtviegas.com"
+  name: "ui.jtviegas.com",
+  lb: "lb.jtviegas.com",
 }
 
 const subdomainStack = new SubdomainStack(app, subdomainProps.stackName!, subdomainProps);
@@ -56,9 +61,11 @@ const srvProps: DistributedServiceProps = {
   env: environment,
   domain: {
     distribution: "ui.jtviegas.com",
+    loadBalancer: "lb.jtviegas.com"
   },
   docker: {
     imageUri: "strm/helloworld-http"
   },
+  stackName: "ServiceStack",
 }
 const spaStack = new DistributeServiceStack(app, srvProps.stackName!, srvProps);

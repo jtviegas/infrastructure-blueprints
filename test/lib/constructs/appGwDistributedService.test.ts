@@ -17,7 +17,7 @@ describe("AppGwDistributedServiceStack", () => {
     };
 
     const testStack = new cdk.Stack(app, "TestStack", props);
-    const base = new BaseConstructs(testStack, "TestStack-baseconstructs", {...props, logsBucketOn: true});
+    const base = new BaseConstructs(testStack, "TestStack-baseconstructs", props);
     const service = new AppGwDistributedService(testStack, "TestStack-service", props, base);
     const template = Template.fromStack(testStack);
 

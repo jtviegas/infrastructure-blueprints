@@ -36,8 +36,6 @@ export {BaseConstructs, IBaseConstructs, BaseConstructsLookup} from "./construct
 
 export { DistributedService, DistributedServiceProps, IDistributedService } from "./constructs/distributedService"
 
-export {SubdomainSpec, ISubdomains, Subdomains, SubdomainsProps} from "./constructs/subdomains"
-
 export { PrefixListFinder, PrefixListFinderProps } from "./commons/prefixListFinder";
 
 export { PublicSubdomain, IPublicSubdomain, PublicSubdomainProps } from "./constructs/publicSubdomain";

@@ -4,116 +4,19 @@ import { ARecord, IHostedZone, PublicHostedZone, RecordTarget } from 'aws-cdk-li
 import { Construct } from 'constructs';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
-import { AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging, 
-  FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol } from 'aws-cdk-lib/aws-ecs';
+import {
+  AppProtocol, AwsLogDriverMode, Cluster, ContainerImage, CpuArchitecture, ExecuteCommandLogging,
+  FargateTaskDefinition, LogDrivers, OperatingSystemFamily, PropagatedTagSource, Protocol
+} from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import { ApplicationProtocol, ApplicationProtocolVersion } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { AllowedMethods, CachePolicy, Distribution, OriginProtocolPolicy, OriginRequestPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { CLOUDFRONT_PREFIX_LIST, DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
-import { deriveAffix, deriveParameter, deriveResourceName, removeNonTextChars, SSMParameterReader } from '../commons/utils';
+import { deriveAffix, deriveResourceName, SSMParameterReader, toParameter } from '../commons/utils';
 import { IBaseConstructs } from './base';
 import { CommonStackProps } from '../commons/props';
-
-
-/*
---- USAGE ---
-
-#!/usr/bin/env node
-import 'source-map-support/register';
-import * as cdk from 'aws-cdk-lib';
-//import { Subdomains, SubdomainsProps } from '@jtviegas/cdk-blueprints';
-import { Subdomains, SubdomainsProps, BaseConstructs, BaseConstructsProps, 
-  IBaseConstructs, DistributedServiceProps, DistributedService, CommonStackProps } from "../../../src"
-import path = require('path');
-import { Construct } from 'constructs';
-
-
-class BaseStack extends cdk.Stack {
-  readonly baseConstructs: IBaseConstructs;
-
-  constructor(scope: Construct, id: string, props: BaseConstructsProps) {
-    super(scope, id, props);
-    this.baseConstructs = new BaseConstructs(this, `${id}-baseConstructs`, props)
-  }
-}
-
-class SubdomainsStack extends cdk.Stack {
-
-  constructor(scope: Construct, id: string, props: SubdomainsProps, base: IBaseConstructs) {
-    super(scope, id, props);
-
-    // work out the subdomains vpc settings based on base constructs
-    const subdomainspecs = []
-    for(const subdomain of props.subdomains){
-      subdomainspecs.push({...subdomain, vpc: base.getVpcLookupAttributes()})
-    }
-    const subdomainProps: SubdomainsProps ={
-      ...props,
-      subdomains: subdomainspecs
-    }
-    const subdomains = new Subdomains(this, `${id}-subdomains`, subdomainProps)
-  }
-}
-
-class ServiceStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: DistributedServiceProps, baseConstructs: IBaseConstructs) {
-    super(scope, id, props);
-    const service = new DistributedService(this, `${id}-service`, props, baseConstructs);
-  }
-}
-
-const app = new cdk.App();
-const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
-
-const baseProps: BaseConstructsProps = {
-  crossRegionReferences: true,
-  organisation: "nn",
-  department: "dsss",
-  solution: "testdsrv",
-  env: environment,
-  tags: {
-    organisation: "nn",
-    department: "dsss",
-    solution: "testdsrv",
-    environment: environment.name,
-  },
-  stackName: "BaseStack",
-  logsBucketOn: true
-}
-const baseStack = new BaseStack(app, "BaseStack", baseProps, );
-
-const subdomainsProps: SubdomainsProps = {
-  ...baseProps,
-  env: {...environment, region: "us-east-1"},
-  domain: {
-    name: "jtviegas.com",
-    private: false
-  },
-  subdomains: [
-    { name: "ui.jtviegas.com", private: false, createCertificate: true}, 
-    { name: "lb.jtviegas.com", private: false, createCertificate: false}
-  ],
-  stackName: "SubdomainsStack",
-}
-const subdomainsStack = new SubdomainsStack(app, "SubdomainsStack", subdomainsProps, baseStack.baseConstructs);
-
-const dsProps: DistributedServiceProps = {
-  ...subdomainsProps,
-  env: environment,
-  domain: {
-    distribution: "ui.jtviegas.com",
-    loadBalancer: "lb.jtviegas.com"
-  },
-  docker: {
-    imageUri: "strm/helloworld-http"
-  },
-  stackName: "ServiceStack",
-}
-new ServiceStack(app, "ServiceStack", dsProps, baseStack.baseConstructs)
-
-*/
 
 export interface DistributedServiceProps extends CommonStackProps {
   readonly domain: {
@@ -135,9 +38,6 @@ export interface DistributedServiceProps extends CommonStackProps {
 }
 
 export interface IDistributedService {
-  readonly cluster: Cluster;
-  readonly taskDefinition: FargateTaskDefinition;
-  readonly hostedZoneLoadBalancer: IHostedZone;
   readonly fargateService: ApplicationLoadBalancedFargateService;
   readonly distribution: Distribution;
 }
@@ -146,16 +46,34 @@ export class DistributedService extends Construct implements IDistributedService
 
   readonly cluster: Cluster;
   readonly taskDefinition: FargateTaskDefinition;
-  readonly hostedZoneLoadBalancer: IHostedZone;
   readonly fargateService: ApplicationLoadBalancedFargateService;
   readonly distribution: Distribution;
 
   constructor(scope: Construct, id: string, props: DistributedServiceProps, baseConstructs: IBaseConstructs) {
     super(scope, id);
 
-    if(baseConstructs.logsBucket === undefined){
-      throw Error("base constructs must include logs bucket");
-    }
+    // ------- certificates and hosted zones -------
+    const certificateArnDistribution = new SSMParameterReader(this, `${id}ParamReaderCertArnDist`, {
+      parameterName: toParameter(props, props.domain.distribution, "certificateArn"),
+      region: DNS_GLOBAL_RESOURCES_REGION
+    }).getParameterValue();
+    const certificateDistribution = Certificate.fromCertificateArn(this, `${id}CertificateLb`, certificateArnDistribution);
+    const hostZoneIdDist = new SSMParameterReader(this, `${id}ParamReaderHostedZoneIdDist`, {
+      parameterName: toParameter(props, props.domain.distribution, "hostedZoneId"),
+      region: DNS_GLOBAL_RESOURCES_REGION
+    }).getParameterValue();
+    const hostedZoneDist: IHostedZone = PublicHostedZone.fromHostedZoneAttributes(this, `${id}HostedZoneDist`, {
+      hostedZoneId: hostZoneIdDist,
+      zoneName: props.domain.distribution
+    });
+    const hostZoneIdLb = new SSMParameterReader(this, `${id}ParamReaderHostedZoneIdLb`, {
+      parameterName: toParameter(props, props.domain.loadBalancer, "hostedZoneId"),
+      region: DNS_GLOBAL_RESOURCES_REGION
+    }).getParameterValue();
+    const hostedZoneLb: IHostedZone = PublicHostedZone.fromHostedZoneAttributes(this, `${id}HostedZoneLb`, {
+      hostedZoneId: hostZoneIdLb,
+      zoneName: props.domain.loadBalancer
+    });
 
     // // --- container image ---
     if((props.docker.dockerfileDir === undefined) && (props.docker.imageUri === undefined)){
@@ -175,7 +93,6 @@ export class DistributedService extends Construct implements IDistributedService
     }
 
     // --- fargate service ---
-
     this.cluster = new Cluster(this, `${id}-cluster`, {
       vpc: baseConstructs.vpc,
       clusterName: deriveResourceName(props, "cluster"),
@@ -225,16 +142,6 @@ export class DistributedService extends Construct implements IDistributedService
     securityGroupApp.addIngressRule(Peer.prefixList(CLOUDFRONT_PREFIX_LIST), 
       Port.allTcp(), "allow all tcp ingress from cloudfront distribution")
 
-    const hostZoneIdLoadBalancer= new SSMParameterReader(this, `${id}-paramReaderHzIdLb`, {
-      parameterName: deriveParameter(props, `${removeNonTextChars(props.domain.loadBalancer)}/hostedZoneId`),
-      region: DNS_GLOBAL_RESOURCES_REGION
-    }).getParameterValue();
-
-    this.hostedZoneLoadBalancer = PublicHostedZone.fromHostedZoneAttributes(this, `${id}-hzLoadBalancer`, {
-      hostedZoneId: hostZoneIdLoadBalancer,
-      zoneName: props.domain.loadBalancer
-    });
-
     this.fargateService = new ApplicationLoadBalancedFargateService(this, `${id}-fargateService`, {
       assignPublicIp: false,
       cluster: this.cluster,
@@ -245,7 +152,7 @@ export class DistributedService extends Construct implements IDistributedService
       cpu: ((props.capacity !== undefined) && (props.capacity.cpuUnits !== undefined)) ? props.capacity.cpuUnits : 512,
       desiredCount: ((props.capacity !== undefined) && (props.capacity.desiredCount !== undefined)) ? props.capacity.desiredCount : 1,
       domainName: props.domain.loadBalancer,
-      domainZone: this.hostedZoneLoadBalancer,
+      domainZone: hostedZoneLb,
       enableECSManagedTags: true,
       ephemeralStorageGiB: ((props.capacity !== undefined) && (props.capacity.ephemeralStorageGiB !== undefined)) ? props.capacity.ephemeralStorageGiB : 21,
       healthCheck: {
@@ -273,11 +180,7 @@ export class DistributedService extends Construct implements IDistributedService
 
     // ------- cloudfront distribution  -------
 
-    const certificateArnDistribution= new SSMParameterReader(this, `${id}-paramReaderCertArnDist`, {
-      parameterName: deriveParameter(props, `${removeNonTextChars(props.domain.distribution)}/certificateArn`),
-      region: DNS_GLOBAL_RESOURCES_REGION
-    }).getParameterValue();
-    const certificateDistribution = Certificate.fromCertificateArn(this, `${id}-certificateDistribution`, certificateArnDistribution)
+
 
     const lbOriginApp = new HttpOrigin(props.domain.loadBalancer, {protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY})
 
@@ -298,21 +201,8 @@ export class DistributedService extends Construct implements IDistributedService
     });
     this.distribution.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
-    // new CfnOutput(this, `${id}-distributionUrl`, { 
-    //   value: `https://${this.distribution.distributionDomainName}`,
-    //   exportName: deriveOutput(props, "distributionUrl") });
-    
-    const hostZoneIdDistribution= new SSMParameterReader(this, `${id}-paramReaderHzIdDist`, {
-      parameterName: deriveParameter(props, `${removeNonTextChars(props.domain.distribution)}/hostedZoneId`),
-      region: DNS_GLOBAL_RESOURCES_REGION
-    }).getParameterValue();
-
-    const hostedZoneDistribution = PublicHostedZone.fromHostedZoneAttributes(this, `${id}-hzDistribution`, {
-      hostedZoneId: hostZoneIdDistribution,
-      zoneName: props.domain.distribution
-    })
     const aRecordApp = new ARecord(this, `${id}-aRecord`, {
-      zone: hostedZoneDistribution,
+      zone: hostedZoneDist,
       target: RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
     });
 

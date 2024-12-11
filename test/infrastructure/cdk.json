@@ -82,8 +82,7 @@
         "region": "eu-north-1",
         "name": "dev",
         "domain": {
-          "name": "jtviegas.com",
-          "private": false
+          "name": "jtviegas.com"
         }
       },
       "tst": {},

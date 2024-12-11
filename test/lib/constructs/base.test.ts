@@ -18,7 +18,7 @@ describe("BaseConstructsStack", () => {
 
     const base = new BaseConstructs(testStack, "BaseConstructs", props)
     const template = Template.fromStack(testStack);
-    console.log("%o", template.toJSON())
+    // console.log("%o", template.toJSON())
 
     template.hasResourceProperties("AWS::KMS::Key", {
       EnableKeyRotation: true,

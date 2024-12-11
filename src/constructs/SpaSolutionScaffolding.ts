@@ -7,12 +7,13 @@ import { RestApiOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origin
 import { AllowedMethods, CachePolicy, Distribution, OriginRequestPolicy, S3OriginAccessControl, 
   Signing, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { Cors, IResource, LogGroupLogDestination, MethodLoggingLevel, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { SSMParameterReader, toParameter, toResourceName } from '../commons/utils';
-import { IBaseConstructs } from './base';
-import { DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, IHostedZone, PublicHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
+
+import { SSMParameterReader, toParameter, toResourceName } from '../commons/utils';
+import { IBaseConstructs } from './base';
+import { DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
 import { CommonStackProps } from '../commons/props';
 
 

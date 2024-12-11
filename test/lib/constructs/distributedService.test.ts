@@ -1,18 +1,16 @@
-import { Capture, Match, Template } from "aws-cdk-lib/assertions";
+import { Template } from "aws-cdk-lib/assertions";
 import * as cdk from "aws-cdk-lib";
-import * as sns from "aws-cdk-lib/aws-sns";
-import {BaseConstructs, DistributedService, DistributedServiceProps, BaseConstructsProps, CLOUDFRONT_PREFIX_LIST} from "../../../src";
+import { BaseConstructs, DistributedService, DistributedServiceProps, CLOUDFRONT_PREFIX_LIST, CommonStackProps } from "../../../src";
 const util = require("util")
 
 describe("DistributedServiceStack", () => {
   test("synthesizes the way we expect", () => {
     const app = new cdk.App();
     
-    const baseProps: BaseConstructsProps = {
+    const baseProps: CommonStackProps = {
       organisation: "corp",
       department: "main",
       solution: "abc",
-      logsBucketOn: true,
       env: { name: "dev", region: "eu-north-1", account: "123456" }
     }
     const testStack = new cdk.Stack(app, "TestStack", baseProps);
