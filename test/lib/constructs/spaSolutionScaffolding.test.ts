@@ -21,7 +21,7 @@ describe("SpaSolutionScaffolding", () => {
     const service = new SpaSolutionScaffolding(testStack, "TestStack-service", base, props);
     const template = Template.fromStack(testStack);
 
-    console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
+    // console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
 
     template.hasResourceProperties("AWS::S3::Bucket", {
       BucketName: 'abc-eunorth1-bucketspa'
