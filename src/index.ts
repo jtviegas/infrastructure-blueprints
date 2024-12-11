@@ -1,4 +1,6 @@
 
+
+
 export {
   DNS_GLOBAL_RESOURCES_REGION, 
   CLOUDFRONT_PREFIX_LIST, 
@@ -22,13 +24,15 @@ export {
   , removeNonTextChars
   , read_cidrs,
   lambdaSpec2Function, 
-  spec2Authorizer
+  spec2Authorizer,
+  toParameter,
+  toResourceName
 } from "./commons/utils";
 
 export { AppGwDistributedService, AppGwDistributedServiceProps, IAppGwDistributedService } from "./constructs/appGwDistributedService"
 export { AppGwDistributedSpa, AppGwDistributedSpaProps, IAppGwDistributedSpa } from "./constructs/appGwDistributedSpa"
 
-export {BaseConstructs, BaseConstructsProps, IBaseConstructs} from "./constructs/base"
+export {BaseConstructs, IBaseConstructs, BaseConstructsLookup} from "./constructs/base"
 
 export { DistributedService, DistributedServiceProps, IDistributedService } from "./constructs/distributedService"
 
@@ -36,8 +40,9 @@ export {SubdomainSpec, ISubdomains, Subdomains, SubdomainsProps} from "./constru
 
 export { PrefixListFinder, PrefixListFinderProps } from "./commons/prefixListFinder";
 
+export { PublicSubdomain, IPublicSubdomain, PublicSubdomainProps } from "./constructs/publicSubdomain";
 
-
+export { SpaSolutionScaffolding, ISpaSolutionScaffolding, SpaSolutionScaffoldingProps } from "./constructs/SpaSolutionScaffolding";
 
 
 

@@ -31,7 +31,7 @@ describe("AppGwDistributedSpaStack", () => {
     // console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
 
     template.hasResourceProperties("AWS::S3::Bucket", {
-      BucketName: 'abc-dev-eunorth1-bucket-spa'
+      BucketName: 'abc-eunorth1-bucket-spa'
     });
 
     template.hasResourceProperties("AWS::ApiGateway::Resource", {
@@ -39,7 +39,7 @@ describe("AppGwDistributedSpaStack", () => {
     });
 
     template.hasResourceProperties("AWS::Lambda::Function", {
-      FunctionName: 'abc-dev-eunorth1-hello',
+      FunctionName: 'abc-eunorth1-hello',
     });
 
     template.hasResourceProperties("AWS::EC2::SecurityGroup", {

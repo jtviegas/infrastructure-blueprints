@@ -17,9 +17,9 @@ describe("commons utils", () => {
     expect( deriveParameter(props, "a-v") ).toEqual( '/abc/dev/av' );
     expect( deriveOutput(props, "a-v") ).toEqual( 'abc-dev-av' );
     expect( deriveAffix(props) ).toEqual( 'AbcDevEunorth1' );
-    expect( deriveResourceAffix(props)).toEqual( 'abc-dev-eunorth1' );
-    expect( deriveResourceName(props, "av") ).toEqual( 'abc-dev-eunorth1-av' );
-    expect( deriveResourceName(props, "av", "xyz") ).toEqual( 'abc-dev-eunorth1-av-xyz' );
+    expect( deriveResourceAffix(props)).toEqual( 'abc-eunorth1' );
+    expect( deriveResourceName(props, "av") ).toEqual( 'abc-eunorth1-av' );
+    expect( deriveResourceName(props, "av", "xyz") ).toEqual( 'abc-eunorth1-av-xyz' );
     expect( removeLeadingSlash("/xyz") ).toEqual( 'xyz' );
     expect( removeLeadingSlash("xyz") ).toEqual( 'xyz' );
   })

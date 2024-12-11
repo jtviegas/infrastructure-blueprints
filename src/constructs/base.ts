@@ -38,61 +38,62 @@ const baseProps: BaseConstructsProps = {
 const baseStack = new BaseStack(app, "BaseStack", baseProps);
 */
 
-export interface BaseConstructsProps extends CommonStackProps {
-  readonly logsBucketOn?: boolean;
-}
 
 export interface IBaseConstructs {
   readonly key: IKey;
   readonly logGroup: ILogGroup;
-  readonly logsBucket?: IBucket;
+  readonly logsBucket: IBucket;
   readonly role: IRole;
   readonly vpc: IVpc;
-  readonly getVpcLookupAttributes: Function;
+}
+
+export interface BaseConstructsLookup {
+  readonly keyArn: string;
+  readonly logGroupArn: string;
+  readonly logsBucketArn: string;
+  readonly roleArn: string;
+  readonly vpcId: string;
 }
 
 export class BaseConstructs extends Construct implements IBaseConstructs {
 
   readonly key: Key;
   readonly logGroup: LogGroup;
-  readonly logsBucket?: Bucket;
+  readonly logsBucket: Bucket;
   readonly role: Role;
   readonly vpc: IVpc;
-  private props: BaseConstructsProps;
 
-  constructor(scope: Construct, id: string, props: BaseConstructsProps) {
+  constructor(scope: Construct, id: string, props: CommonStackProps) {
     super(scope, id);
-    this.props = props;
+
     // --- kms key ---
-    this.key = new Key(this, `${id}-key`, {
+    this.key = new Key(this, `${id}BaseConstructsLogsKey`, {
       enableKeyRotation: true,
     });
 
     // --- logGroup ---
-    this.logGroup = new LogGroup(this, `${id}-logGroup`, 
-      { 
-        logGroupName: deriveResourceName(props, "base"), 
+    this.logGroup = new LogGroup(this, `${id}BaseConstructsLogGroup`,
+      {
+        logGroupName: deriveResourceName(props, "base"),
         removalPolicy: RemovalPolicy.DESTROY,
-    });
+      });
 
     // --- logs bucket ---
-    if (props.logsBucketOn !== undefined && props.logsBucketOn){
-      this.logsBucket = new Bucket(this, `${id}-bucketLogs`, {
-        bucketName: deriveResourceName(props, "base", "logs"),
-        versioned: false, 
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-        autoDeleteObjects: true,
-        lifecycleRules: [
-          {
-            expiration: cdk.Duration.days(7),
-          },
-        ],
-        objectOwnership: ObjectOwnership.OBJECT_WRITER,
-      });
-    }
+    this.logsBucket = new Bucket(this, `${id}BaseConstructsLogsBucket`, {
+      bucketName: deriveResourceName(props, "base", "logs"),
+      versioned: false,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      lifecycleRules: [
+        {
+          expiration: cdk.Duration.days(7),
+        },
+      ],
+      objectOwnership: ObjectOwnership.OBJECT_WRITER,
+    });
 
     // --- solution role ---
-    this.role = new Role(this, `${id}-role`, {
+    this.role = new Role(this, `${id}BaseConstructsRole`, {
       assumedBy: new CompositePrincipal(
         new ServicePrincipal("ecs-tasks.amazonaws.com"),
         new ServicePrincipal("lambda.amazonaws.com"),
@@ -137,35 +138,30 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
 
     // --- vpc ---
 
-    if (props.env.vpc === undefined){
-      this.vpc = new Vpc(this, `${id}-vpc`, {
-        vpcName: deriveResourceName(props, "base"),
-        subnetConfiguration: [
-          {
-            name: deriveResourceName(props, "base", "private"),
-            subnetType: SubnetType.PRIVATE_WITH_EGRESS,
-          },
-          {
-            name: deriveResourceName(props, "base", "public"),
-            subnetType: SubnetType.PUBLIC,
-          }
-        ]
-      });
-    }
-    else {
-      this.vpc = Vpc.fromLookup(this, `${id}-vpc`, props.env.vpc)
-    }
+    this.vpc = new Vpc(this, `${id}BaseConstructsVpc`, {
+      vpcName: deriveResourceName(props, "base"),
+      subnetConfiguration: [
+        {
+          name: deriveResourceName(props, "base", "private"),
+          subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+        },
+        {
+          name: deriveResourceName(props, "base", "public"),
+          subnetType: SubnetType.PUBLIC,
+        }
+      ]
+    });
 
   }
 
-
-  public getVpcLookupAttributes(): VpcLookupAttributes {
-    if (this.props.env.vpc === undefined){
-      return {
-        vpcId: this.vpc.vpcId,
-        vpcName: deriveResourceName(this.props, "base")
-      }
+  public static fromProps(scope: Construct, id: string, lookup: BaseConstructsLookup): IBaseConstructs {
+    return {
+      key: Key.fromKeyArn(scope, `${id}BaseConstructsKey`, lookup.keyArn),
+      logGroup: LogGroup.fromLogGroupArn(scope, `${id}BaseConstructsLogGroup`, lookup.logGroupArn),
+      logsBucket: Bucket.fromBucketArn(scope, `${id}BaseConstructsLogsBucket`, lookup.logsBucketArn),
+      role: Role.fromRoleArn(scope, `${id}BaseConstructsRole`, lookup.roleArn),
+      vpc: Vpc.fromLookup(scope, `${id}BaseConstructsVpc`, {vpcId: lookup.vpcId})
     }
-    else return this.props.env.vpc
   }
+
 }

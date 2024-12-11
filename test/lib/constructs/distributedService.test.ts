@@ -34,7 +34,7 @@ describe("DistributedServiceStack", () => {
     //console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
 
     template.hasResourceProperties("AWS::ECS::Cluster", {
-      ClusterName: 'abc-dev-eunorth1-cluster',
+      ClusterName: 'abc-eunorth1-cluster',
     });
 
     template.hasResourceProperties("AWS::ECS::TaskDefinition", {
@@ -59,10 +59,10 @@ describe("DistributedServiceStack", () => {
     });
 
     template.hasResourceProperties("AWS::ECS::Service", {
-      ServiceName: 'abc-dev-eunorth1-fargate-srv',
+      ServiceName: 'abc-eunorth1-fargate-srv',
       Cluster: { Ref: 'TestStackserviceTestStackserviceclusterD4914B63' },
       DeploymentController: { Type: 'ECS' },
-      LoadBalancers: [{ContainerName: 'abc-dev-eunorth1-image-srv',
+      LoadBalancers: [{ContainerName: 'abc-eunorth1-image-srv',
         ContainerPort: 80}]
     });
 

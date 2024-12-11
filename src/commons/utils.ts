@@ -25,6 +25,24 @@ export const deriveParameter = (props: CommonStackProps, name: string): string =
   return `${deriveParameterPrefix(props)}/${key}`
 }
 
+export const toParameter = (props: CommonStackProps, ...name: string[]): string => {
+  const prefix: string = deriveParameterPrefix(props);
+  let result: string = prefix;
+  for(const n of name){
+    result += `/${removeNonTextChars(n)}`
+  }
+  return result
+}
+
+export const toResourceName = (props: CommonStackProps, ...name: string[]): string => {
+  const prefix: string = deriveResourceAffix(props);
+  let result: string = prefix;
+  for(const n of name){
+    result += `-${removeNonTextChars(n).toLowerCase()}`
+  }
+  return result
+}
+
 export const deriveOutput = (props: CommonStackProps, name: string): string => {
   const key = removeNonTextChars(name);
   return `${props.solution}-${props.env.name}-${key}`
@@ -39,7 +57,7 @@ export const deriveAffix = (props: CommonStackProps): string => {
 
 export const deriveResourceAffix = (props: CommonStackProps): string => {
   const region = removeNonTextChars(props.env.region)
-  return `${props.solution}-${props.env.name}-${region}`
+  return `${props.solution}-${region}`
 }
 
 export const deriveResourceName = (props: CommonStackProps, name: string, surname: string = ""): string => {

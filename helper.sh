@@ -332,7 +332,7 @@ case "$1" in
         cdk_infra bootstrap "$TEST_DEPLOY_INFRA_DIR" "$3" && cdk_infra on "$TEST_DEPLOY_INFRA_DIR" "$3"
         ;;
       off)
-        cdk_infra off "$TEST_DEPLOY_INFRA_DIR"
+        cdk_infra off "$TEST_DEPLOY_INFRA_DIR" "$3"
         ;;
       *)
         usage

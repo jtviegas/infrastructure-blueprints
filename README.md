@@ -407,6 +407,75 @@ export interface IAppGwDistributedSpa {
   new SpaStack(app, process.env.STACK!, {...props, domain: props.subdomains[0].name})
   ```
 
+## SpaSolutionScaffolding
+![SpaSolutionScaffolding](assets/SpaSolutionScaffolding.png)
+
+### interface
+```
+export interface ISpaSolutionScaffolding {
+  readonly bucketSpa: IBucket;
+  readonly resourceApi: IResource;
+}
+```
+### constructor properties
+```
+export interface SpaSolutionScaffoldingProps extends CommonStackProps {
+  readonly cloudfront_cidrs: string[];
+  readonly subdomain: string;
+  readonly apiUsagePlan?: {
+    quota?: {
+      limit: number,
+      period: Period
+    },
+    throttle?: {
+      rateLimit: number,
+      burstLimit: number
+    }
+  }
+}
+```
+### usage example
+
+```
+// --- define the stack ---
+class SpaStack extends Stack {
+  constructor(scope: Construct, id: string, props: SpaSolutionScaffoldingProps) {
+    super(scope, id, props);
+
+    const base = new BaseConstructs(this, `${id}BaseConstructs`, props)
+    const spa = new SpaSolutionScaffolding(this, `${id}-service`, base, props);
+
+    // >>> EXTENSION: adding endpoint resources and methods to the api gateway implemented in lambda functions
+
+    const lambda: IFunction = new Function(this, `${id}Lambda`, {
+      code: Code.fromAsset(path.join(__dirname, "../../resources/docker/hellosrv")),
+      handler: 'index.handler',
+      runtime: Runtime.NODEJS_20_X,
+      functionName: toResourceName(props, "backend"),
+      memorySize: 10240,
+      timeout: cdk.Duration.seconds(900),
+      logGroup: base.logGroup,
+      role: base.role,
+      vpc: base.vpc
+    });
+    const lambdaIntegration = new LambdaIntegration(lambda, { passthroughBehavior: PassthroughBehavior.WHEN_NO_MATCH });
+    spa.resourceApi.addMethod('GET', lambdaIntegration, { apiKeyRequired: false, authorizationType: AuthorizationType.NONE });
+
+    // EXTENSION <<< 
+    
+  }
+}
+
+// --- deploy the stack ---
+const spaProps: SpaSolutionScaffoldingProps = {
+  ...subdomainProps,
+  cloudfront_cidrs: read_cidrs(path.join(__dirname, "../cloudfront_cidr.json")),
+  env: environment,
+  stackName: "SpaStack",
+  subdomain: subdomainProps.name
+}
+const spaStack = new SpaStack(app, spaProps.stackName!, spaProps);
+```
 
 
 

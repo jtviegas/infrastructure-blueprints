@@ -1,16 +1,16 @@
 import { Template } from "aws-cdk-lib/assertions";
 import * as cdk from "aws-cdk-lib";
-import { BaseConstructs, AppGwDistributedServiceProps, AppGwDistributedService } from "../../../src";
+import { BaseConstructs, AppGwDistributedServiceProps, AppGwDistributedService, SpaSolutionScaffoldingProps } from "../../../src";
 const util = require("util")
 
-describe("AppGwDistributedServiceStack", () => {
+describe("SpaSolutionScaffolding", () => {
   test("synthesizes the way we expect", () => {
     const app = new cdk.App();
-    const props: AppGwDistributedServiceProps = {
+    const props: SpaSolutionScaffoldingProps = {
       organisation: "corp",
       department: "main",
       solution: "abc",
-      env: { name: "dev", region: "eu-north-1", account: "123456" },
+      env: { name: "dev", region: "eu-north-1", account: "123456" domain: {}},
       docker: {
         imageUri: "strm/helloworld-http"
       }

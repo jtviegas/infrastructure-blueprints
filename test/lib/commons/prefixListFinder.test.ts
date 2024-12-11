@@ -9,7 +9,7 @@ import { CLOUDFRONT_PREFIX_LIST } from "../../../src";
 
 describe("commons utils", async () => {
 
-  test.skip("DescribeManagedPrefixListsCommand work as expected", async () => {
+  test("DescribeManagedPrefixListsCommand work as expected", async () => {
 
     const client = new EC2Client({});
     const input = {
@@ -25,7 +25,7 @@ describe("commons utils", async () => {
     //console.log(util.inspect(response))
   })
 
-  test.skip("GetManagedPrefixListEntriesCommand work as expected", async () => {
+  test("GetManagedPrefixListEntriesCommand work as expected", async () => {
 
     const client = new EC2Client({});
     const input = {

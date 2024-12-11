@@ -126,5 +126,9 @@
         ]
       }
     ]
+  },
+  "hosted-zone:account=041651352119:domainName=jtviegas.com:region=us-east-1": {
+    "Id": "/hostedzone/Z094156632T0CPYNJNBSO",
+    "Name": "jtviegas.com."
   }
 }
