@@ -16,18 +16,28 @@ export function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export const deriveParameterPrefix = (props: CommonStackProps): string => {
-  return `/${props.solution}/${props.env.name}`
-}
-
 export const deriveParameter = (props: CommonStackProps, name: string): string => {
   const key = removeNonTextChars(name);
   return `${deriveParameterPrefix(props)}/${key}`
 }
 
+export const deriveParameterPrefix = (props: CommonStackProps): string => {
+  return `/${props.solution}/${props.env.name}`
+}
+
+export const deriveParameterAffix = (props: CommonStackProps): string => {
+  const region = removeNonTextChars(props.env.region)
+  return `/${props.solution}/${region}`
+}
+
+export const deriveResourceAffix = (props: CommonStackProps): string => {
+  const region = removeNonTextChars(props.env.region)
+  return `${props.solution}-${region}`
+}
+
 export const toParameter = (props: CommonStackProps, ...name: string[]): string => {
-  const prefix: string = deriveParameterPrefix(props);
-  let result: string = prefix;
+  const region = removeNonTextChars(props.env.region)
+  let result: string = `/${props.solution}/${region}`;
   for(const n of name){
     result += `/${removeNonTextChars(n)}`
   }
@@ -35,8 +45,8 @@ export const toParameter = (props: CommonStackProps, ...name: string[]): string 
 }
 
 export const toResourceName = (props: CommonStackProps, ...name: string[]): string => {
-  const prefix: string = deriveResourceAffix(props);
-  let result: string = prefix;
+  const region = removeNonTextChars(props.env.region)
+  let result: string = `${props.solution}-${region}`;
   for(const n of name){
     result += `-${removeNonTextChars(n).toLowerCase()}`
   }
@@ -53,11 +63,6 @@ export const deriveAffix = (props: CommonStackProps): string => {
   const env = capitalizeFirstLetter(props.env.name)
   const solution = capitalizeFirstLetter(props.solution)
   return `${solution}${env}${region}`
-}
-
-export const deriveResourceAffix = (props: CommonStackProps): string => {
-  const region = removeNonTextChars(props.env.region)
-  return `${props.solution}-${region}`
 }
 
 export const deriveResourceName = (props: CommonStackProps, name: string, surname: string = ""): string => {

@@ -18,8 +18,7 @@ describe("SubdomainsStack", () => {
       department: "main",
       solution: "abc",
       env: { name: "dev", region: "us-east-1", account: "123456", domain: {
-        name: "site.com",
-        private: false
+        name: "site.com"
       } }
     }
     const testStack = new cdk.Stack(app, "TestStack", baseProps);
@@ -39,7 +38,7 @@ describe("SubdomainsStack", () => {
     });
 
     template.hasResourceProperties("AWS::SSM::Parameter", {
-      Name: '/abc/dev/uisitecom/hostedZoneId'
+      Name: '/abc/useast1/uisitecom/hostedZoneId'
     });
 
     template.hasResourceProperties("AWS::Route53::RecordSet", {
@@ -53,7 +52,7 @@ describe("SubdomainsStack", () => {
     });
 
     template.hasResourceProperties("AWS::SSM::Parameter", {
-      Name: '/abc/dev/uisitecom/certificateArn'
+      Name: '/abc/useast1/uisitecom/certificateArn'
     });
 
 })
