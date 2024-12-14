@@ -30,7 +30,9 @@ export {
   toParameter,
   toResourceName,
   createCustomFunction,
-  deriveParameterAffix
+  deriveParameterAffix,
+  toOutputKey,
+  toSecretKey
 } from "./commons/utils";
 
 export { AppGwDistributedService, AppGwDistributedServiceProps, IAppGwDistributedService } from "./constructs/appGwDistributedService"
