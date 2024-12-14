@@ -9,7 +9,9 @@ export {
 } from "./commons/constants";
 export {VpcLookupAttributes, ApiResourceMethodSpec, ApiResourceSpec, 
   AuthorizerSpec, CommonStackProps, DockerImageSpec, LambdaResourceSpec, 
-  SSMParameterReaderProps, SysEnv} from "./commons/props";
+  SSMParameterReaderProps, SysEnv,
+  CustomCodeFunctionProps
+} from "./commons/props";
 
 export { 
   deriveParameterPrefix
