@@ -43,6 +43,19 @@ export const toParameter = (props: CommonStackProps, ...name: string[]): string 
   return result
 }
 
+export const toSecretKey = (props: CommonStackProps, ...name: string[]): string => {
+  return toParameter(props, ...name);
+}
+
+export const toOutputKey = (props: CommonStackProps, ...name: string[]): string => {
+  const solution = capitalizeFirstLetter(props.solution);
+  let result: string = `${solution}`;
+  for(const n of name){
+    result += capitalizeFirstLetter(n)
+  }
+  return result
+}
+
 export const toResourceName = (props: CommonStackProps, ...name: string[]): string => {
   const region = removeNonTextChars(props.env.region)
   let result: string = `${props.solution}-${region}`;
