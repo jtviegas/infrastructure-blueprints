@@ -1,12 +1,12 @@
 import * as CustomResource from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
-import { Arn, Stack, Duration } from "aws-cdk-lib";
+import { Arn, Stack, Duration, Size } from "aws-cdk-lib";
 import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import * as fs from 'fs';
-import { Code, DockerImageCode, DockerImageFunction, IFunction } from 'aws-cdk-lib/aws-lambda';
+import { Code, DockerImageCode, DockerImageFunction, IFunction, Function, Handler, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { IBaseConstructs } from '../constructs/base';
 import { IAuthorizer, RequestAuthorizer } from 'aws-cdk-lib/aws-apigateway';
-import { AuthorizerSpec, CommonStackProps, LambdaResourceSpec, SSMParameterReaderProps } from './props';
+import { AuthorizerSpec, CommonStackProps, CustomCodeFunctionProps, LambdaResourceSpec, SSMParameterReaderProps } from './props';
 
 export function removeNonTextChars(str: string): string {
   return str.replace(/[^a-zA-Z0-9\s]/g, '');
@@ -164,3 +164,28 @@ export function lambdaSpec2Function(scope: Construct, id: string, baseConstructs
   });
   return result;
 }
+
+export function createCustomFunction(scope: Construct, id: string, base: IBaseConstructs, 
+  commonProps: CommonStackProps, props: CustomCodeFunctionProps): IFunction {
+  return new Function(scope, `${id}Function${props.name}`, {
+    code: Code.fromAssetImage(
+      props.dirCode,
+      {
+        assetName: toResourceName(commonProps, "image", props.name),
+        platform: Platform.LINUX_AMD64,
+        buildArgs: props.buildArgs,
+      }
+    ),
+    handler: Handler.FROM_IMAGE,
+    runtime: Runtime.FROM_IMAGE,
+    description: props.description,
+    functionName: toResourceName(commonProps, "lambda", props.name),
+    memorySize: props.memorySize || 10240,
+    ephemeralStorageSize: props.ephemeralStorageSize || Size.gibibytes(8),
+    timeout: props.timeout || Duration.seconds(900),
+    environment: props.envVars,
+    role: base.role,
+    vpc: base.vpc,
+    logGroup: base.logGroup,
+  });
+};

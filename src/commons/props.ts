@@ -10,6 +10,21 @@ export interface DockerImageSpec {
 
 }
 
+export interface CustomCodeFunctionProps {
+  readonly name: string;
+  readonly dirCode: string;
+  readonly buildArgs?: {
+    [key: string]: string;
+  }
+  readonly description?: string;
+  readonly memorySize?: number;
+  readonly ephemeralStorageSize?: Size;
+  readonly timeout?: Duration;
+  readonly envVars?: {
+    [key: string]: string;
+  }
+}
+
 export interface VpcLookupAttributes {
   readonly vpcId: string;
   readonly vpcName: string;
