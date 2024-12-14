@@ -38,7 +38,7 @@ describe("SubdomainsStack", () => {
     });
 
     template.hasResourceProperties("AWS::SSM::Parameter", {
-      Name: '/abc/useast1/uisitecom/hostedZoneId'
+      Name: '/abc/uisitecom/hostedZoneId'
     });
 
     template.hasResourceProperties("AWS::Route53::RecordSet", {
@@ -52,7 +52,7 @@ describe("SubdomainsStack", () => {
     });
 
     template.hasResourceProperties("AWS::SSM::Parameter", {
-      Name: '/abc/useast1/uisitecom/certificateArn'
+      Name: '/abc/uisitecom/certificateArn'
     });
 
 })

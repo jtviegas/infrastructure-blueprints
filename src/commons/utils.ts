@@ -93,7 +93,7 @@ export class SSMParameterReader extends CustomResource.AwsCustomResource {
         Name: parameterName,
       },
       region,
-      //physicalResourceId: CustomResource.PhysicalResourceId.of(Date.now().toString()),
+      physicalResourceId: CustomResource.PhysicalResourceId.of(Date.now().toString()),
 
     };
 
