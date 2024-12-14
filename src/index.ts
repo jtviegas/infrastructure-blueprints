@@ -1,5 +1,6 @@
 
 
+export { PrefixListFinder, PrefixListFinderProps } from "./commons/prefixListFinder";
 
 export {
   DNS_GLOBAL_RESOURCES_REGION, 
@@ -9,7 +10,6 @@ export {
 export {VpcLookupAttributes, ApiResourceMethodSpec, ApiResourceSpec, 
   AuthorizerSpec, CommonStackProps, DockerImageSpec, LambdaResourceSpec, 
   SSMParameterReaderProps, SysEnv} from "./commons/props";
-
 
 export { 
   deriveParameterPrefix
@@ -26,20 +26,16 @@ export {
   lambdaSpec2Function, 
   spec2Authorizer,
   toParameter,
-  toResourceName
+  toResourceName,
+  createCustomFunction,
+  deriveParameterAffix
 } from "./commons/utils";
 
 export { AppGwDistributedService, AppGwDistributedServiceProps, IAppGwDistributedService } from "./constructs/appGwDistributedService"
 export { AppGwDistributedSpa, AppGwDistributedSpaProps, IAppGwDistributedSpa } from "./constructs/appGwDistributedSpa"
-
 export {BaseConstructs, IBaseConstructs, BaseConstructsLookup} from "./constructs/base"
-
 export { DistributedService, DistributedServiceProps, IDistributedService } from "./constructs/distributedService"
-
-export { PrefixListFinder, PrefixListFinderProps } from "./commons/prefixListFinder";
-
 export { PublicSubdomain, IPublicSubdomain, PublicSubdomainProps } from "./constructs/publicSubdomain";
-
 export { SpaSolutionScaffolding, ISpaSolutionScaffolding, SpaSolutionScaffoldingProps } from "./constructs/SpaSolutionScaffolding";
 
 
