@@ -49,7 +49,16 @@ export class SpaSolutionScaffolding extends Construct implements ISpaSolutionSca
       parameterName: toParameter(props, props.subdomain, "certificateArn"),
       region: DNS_GLOBAL_RESOURCES_REGION
     }).getParameterValue();
-    const certificate = Certificate.fromCertificateArn(this, `${id}Certificate`, certificateArn)
+    const certificate = Certificate.fromCertificateArn(this, `${id}Certificate`, certificateArn);
+
+    const hostZoneId = new SSMParameterReader(this, `${id}ParamReaderHostedZoneId`, {
+      parameterName: toParameter(props, props.subdomain, "hostedZoneId"),
+      region: DNS_GLOBAL_RESOURCES_REGION
+    }).getParameterValue();
+    const hostedZone: IHostedZone = PublicHostedZone.fromHostedZoneAttributes(this, `${id}HostedZone`, {
+      hostedZoneId: hostZoneId,
+      zoneName: props.subdomain
+    });
 
     // ------- spa bucket -------
     this.bucketSpa = new Bucket(this, `${id}BucketSpa`, {
@@ -164,14 +173,7 @@ export class SpaSolutionScaffolding extends Construct implements ISpaSolutionSca
       logBucket: baseConstructs.logsBucket,
     });
 
-    const hostZoneId = new SSMParameterReader(this, `${id}ParamReaderHostedZoneId`, {
-      parameterName: toParameter(props, props.subdomain, "hostedZoneId"),
-      region: DNS_GLOBAL_RESOURCES_REGION
-    }).getParameterValue();
-    const hostedZone: IHostedZone = PublicHostedZone.fromHostedZoneAttributes(this, `${id}HostedZone`, {
-      hostedZoneId: hostZoneId,
-      zoneName: props.subdomain
-    })
+    
     const aRecordSubdomain = new ARecord(this, `${id}ARecordSubdomain`, {
       zone: hostedZone,
       target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),

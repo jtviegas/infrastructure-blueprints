@@ -36,8 +36,7 @@ export const deriveResourceAffix = (props: CommonStackProps): string => {
 }
 
 export const toParameter = (props: CommonStackProps, ...name: string[]): string => {
-  const region = removeNonTextChars(props.env.region)
-  let result: string = `/${props.solution}/${region}`;
+  let result: string = `/${props.solution}`;
   for(const n of name){
     result += `/${removeNonTextChars(n)}`
   }
@@ -94,7 +93,7 @@ export class SSMParameterReader extends CustomResource.AwsCustomResource {
         Name: parameterName,
       },
       region,
-      physicalResourceId: CustomResource.PhysicalResourceId.of(Date.now().toString()),
+      //physicalResourceId: CustomResource.PhysicalResourceId.of(Date.now().toString()),
 
     };
 
