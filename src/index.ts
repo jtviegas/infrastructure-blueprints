@@ -1,5 +1,6 @@
 
 
+
 export { PrefixListFinder, PrefixListFinderProps } from "./commons/prefixListFinder";
 
 export {
@@ -42,6 +43,6 @@ export { DistributedService, DistributedServiceProps, IDistributedService } from
 export { PublicSubdomain, IPublicSubdomain, PublicSubdomainProps } from "./constructs/publicSubdomain";
 export { SpaSolutionScaffolding, ISpaSolutionScaffolding, SpaSolutionScaffoldingProps } from "./constructs/SpaSolutionScaffolding";
 
-
+export { PublicDomain, IPublicDomain, PublicDomainProps } from "./constructs/publicDomain";
 
 
