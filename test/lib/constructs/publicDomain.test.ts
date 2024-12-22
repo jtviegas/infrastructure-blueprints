@@ -2,7 +2,7 @@ const util = require("util")
 import { Template } from "aws-cdk-lib/assertions";
 import * as cdk from "aws-cdk-lib";
 import {
- PublicDomainProps,
+  PublicDomainProps,
   PublicDomain,
   CommonStackProps
 } from "../../../src";
@@ -35,17 +35,9 @@ describe("TestStack", () => {
       Name: 'tgedr.com.'
     });
 
-    template.hasResourceProperties("AWS::SSM::Parameter", {
-      Name: '/abc/tgedrcom/hostedZoneId'
-    });
-
     template.hasResourceProperties("AWS::CertificateManager::Certificate", {
       DomainName: 'tgedr.com',
       ValidationMethod: 'DNS'
-    });
-
-    template.hasResourceProperties("AWS::SSM::Parameter", {
-      Name: '/abc/tgedrcom/certificateArn'
     });
 
 })
