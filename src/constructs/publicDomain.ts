@@ -29,9 +29,11 @@ export class PublicDomain extends Construct implements IPublicDomain {
       throw new Error("please allow crossRegionReferences")
     }
 
-    this.hostedZoneDomain = new PublicHostedZone(this, `HostedZone`, { zoneName: props.name });
+    this.hostedZoneDomain = new PublicHostedZone(this, `HostedZone`, 
+      { zoneName: props.name}
+    );
     this.certificateDomain = new Certificate(this, `Certificate`, {
-      domainName: props.name,
+      domainName: `*.${props.name}`,
       certificateName: props.name,
       validation: CertificateValidation.fromDns(this.hostedZoneDomain)
     });

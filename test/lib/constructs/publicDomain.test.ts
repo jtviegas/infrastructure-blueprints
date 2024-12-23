@@ -36,7 +36,7 @@ describe("TestStack", () => {
     });
 
     template.hasResourceProperties("AWS::CertificateManager::Certificate", {
-      DomainName: 'tgedr.com',
+      DomainName: '*.tgedr.com',
       ValidationMethod: 'DNS'
     });
 
