@@ -51,7 +51,7 @@ export const toOutputKey = (props: CommonStackProps, ...name: string[]): string 
   const solution = capitalizeFirstLetter(props.solution);
   let result: string = `${solution}`;
   for(const n of name){
-    result += capitalizeFirstLetter(n)
+    result += capitalizeFirstLetter(removeNonTextChars(n))
   }
   return result
 }
