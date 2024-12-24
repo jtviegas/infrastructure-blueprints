@@ -15,14 +15,14 @@ export interface PublicDomainProps extends CommonStackProps {
 export interface IPublicDomain {
   readonly hostedZoneDomain: IHostedZone;
   readonly certificateDomain: ICertificate;
-  readonly publicDomainContributor: IRole;
+  //readonly publicDomainContributor: IRole;
 }
 
 export class PublicDomain extends Construct implements IPublicDomain {
 
   readonly hostedZoneDomain: IHostedZone;
   readonly certificateDomain: ICertificate;
-  readonly publicDomainContributor: IRole;
+  // readonly publicDomainContributor: IRole;
 
   constructor(scope: Construct, id: string, props: PublicDomainProps) {
     super(scope, id);
@@ -37,32 +37,35 @@ export class PublicDomain extends Construct implements IPublicDomain {
     this.hostedZoneDomain = new PublicHostedZone(this, `HostedZone`, 
       { zoneName: props.name}
     );
+
     this.certificateDomain = new Certificate(this, `Certificate`, {
       domainName: `*.${props.name}`,
       certificateName: props.name,
       validation: CertificateValidation.fromDns(this.hostedZoneDomain)
     });
-
+ 
     const principals: AccountPrincipal[] = [];
     for(const guest of props.accountIdsGuest){
       principals.push(new AccountPrincipal(guest))
     }
 
-    const rolePublicDomainContributor = new Role(this, 'rolePublicDomainContributor', {
-      roleName: toResourceName(props, props.name, "Contributor"),
-      description: "allows to add records to the domain hosted zone",
-      assumedBy: new CompositePrincipal(...principals)
-    });
+    this.hostedZoneDomain.grantDelegation(new CompositePrincipal(...principals));
 
-    rolePublicDomainContributor.addToPolicy(new PolicyStatement({
-      actions: [
-        'route53:List*',
-        'route53:ChangeTagsForResource',
-        'route53:ChangeResourceRecordSets',
-    ],
-      resources: [ this.hostedZoneDomain.hostedZoneArn ],
-    }));
-    
-    this.publicDomainContributor = rolePublicDomainContributor;
+    // const rolePublicDomainContributor = new Role(this, 'rolePublicDomainContributor', {
+    //   roleName: toResourceName(props, props.name, "Contributor"),
+    //   description: "allows to add records to the domain hosted zone",
+    //   assumedBy: new CompositePrincipal(...principals)
+    // });
+
+    // rolePublicDomainContributor.addToPolicy(new PolicyStatement({
+    //   actions: [
+    //     'route53:List*',
+    //     'route53:ChangeTagsForResource',
+    //     'route53:ChangeResourceRecordSets',
+    // ],
+    //   resources: [ this.hostedZoneDomain.hostedZoneArn ],
+    // }));
+
+    // this.publicDomainContributor = rolePublicDomainContributor;
   }
 }

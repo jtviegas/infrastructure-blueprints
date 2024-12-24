@@ -271,6 +271,7 @@ usage() {
       options:
 
       - commands: lists handy commands we use all the time
+      - set_aws_profile <profile> <key> <secret> <region> [output=json]
       - bashutils:  updates bashutils include file
       ...library section
       - deps:     install lib dependencies
@@ -301,6 +302,9 @@ debug "1: $1 2: $2 3: $3 4: $4 5: $5 6: $6 7: $7 8: $8 9: $9"
 case "$1" in
   commands)
     commands
+    ;;
+  set_aws_profile)
+    set_aws_profile $2 $3 $4 $5 $6
     ;;
   bashutils)
     update_bashutils
