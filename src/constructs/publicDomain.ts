@@ -3,8 +3,7 @@ import { IHostedZone, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
 import { DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
 import { CommonStackProps } from '../commons/props';
-import { AccountPrincipal, CompositePrincipal, IRole, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { toResourceName } from '../commons/utils';
+import { AccountPrincipal, CompositePrincipal } from 'aws-cdk-lib/aws-iam';
 
 
 export interface PublicDomainProps extends CommonStackProps {
