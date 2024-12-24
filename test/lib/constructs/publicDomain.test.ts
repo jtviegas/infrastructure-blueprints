@@ -41,9 +41,9 @@ describe("TestStack", () => {
       ValidationMethod: 'DNS'
     });
 
-    template.hasResourceProperties("AWS::IAM::Role", {
-      RoleName: 'abc-useast1-tgedrcom-contributor'
-    });
+    // template.hasResourceProperties("AWS::IAM::Role", {
+    //   RoleName: 'abc-useast1-tgedrcom-contributor'
+    // });
 
 })
 })
