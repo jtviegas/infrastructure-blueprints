@@ -3,7 +3,8 @@ import { IHostedZone, PublicHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
 import { DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
 import { CommonStackProps } from '../commons/props';
-import { AccountPrincipal, CompositePrincipal } from 'aws-cdk-lib/aws-iam';
+import { AccountPrincipal, CompositePrincipal, IRole, PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
+import { toResourceName } from '../commons/utils';
 
 
 export interface PublicDomainProps extends CommonStackProps {
@@ -14,14 +15,14 @@ export interface PublicDomainProps extends CommonStackProps {
 export interface IPublicDomain {
   readonly hostedZoneDomain: IHostedZone;
   readonly certificateDomain: ICertificate;
-  //readonly publicDomainContributor: IRole;
+  readonly publicDomainContributor: IRole;
 }
 
 export class PublicDomain extends Construct implements IPublicDomain {
 
   readonly hostedZoneDomain: IHostedZone;
   readonly certificateDomain: ICertificate;
-  // readonly publicDomainContributor: IRole;
+  readonly publicDomainContributor: IRole;
 
   constructor(scope: Construct, id: string, props: PublicDomainProps) {
     super(scope, id);
@@ -47,24 +48,34 @@ export class PublicDomain extends Construct implements IPublicDomain {
     for(const guest of props.accountIdsGuest){
       principals.push(new AccountPrincipal(guest))
     }
+    const principalGuests = new CompositePrincipal(...principals);
 
-    this.hostedZoneDomain.grantDelegation(new CompositePrincipal(...principals));
+    const rolePublicDomainContributor = new Role(this, 'rolePublicDomainContributor', {
+      roleName: toResourceName(props, props.name, "Contributor"),
+      description: "allows to add records to the domain hosted zone",
+      assumedBy: principalGuests
+    });
 
-    // const rolePublicDomainContributor = new Role(this, 'rolePublicDomainContributor', {
-    //   roleName: toResourceName(props, props.name, "Contributor"),
-    //   description: "allows to add records to the domain hosted zone",
-    //   assumedBy: new CompositePrincipal(...principals)
-    // });
+    rolePublicDomainContributor.addToPolicy(new PolicyStatement({
+      actions: [
+        'route53:List*',
+        'route53:Get*',
+        'route53:Describe*',
+        'route53:ChangeTagsForResource',
+        'route53:ChangeResourceRecordSets'
+    ],
+      resources: [ this.hostedZoneDomain.hostedZoneArn ],
+    }));
 
-    // rolePublicDomainContributor.addToPolicy(new PolicyStatement({
-    //   actions: [
-    //     'route53:List*',
-    //     'route53:ChangeTagsForResource',
-    //     'route53:ChangeResourceRecordSets',
-    // ],
-    //   resources: [ this.hostedZoneDomain.hostedZoneArn ],
-    // }));
+    rolePublicDomainContributor.addToPolicy(new PolicyStatement({
+      actions: [
+        'acm:Get*',
+        'acm:Describe*',
+        'acm:List*',
+    ],
+      resources: [ this.certificateDomain.certificateArn ],
+    }));
 
-    // this.publicDomainContributor = rolePublicDomainContributor;
+    this.publicDomainContributor = rolePublicDomainContributor;
   }
 }
