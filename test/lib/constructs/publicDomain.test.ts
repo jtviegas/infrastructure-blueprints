@@ -24,7 +24,8 @@ describe("TestStack", () => {
     const props: PublicDomainProps = {
       ...baseProps,
       name: "tgedr.com",
-      accountIdsGuest: ["123", "456"],
+      subdomains: [{ name: "test.tgedr.com", 
+        nameservers: ["ns-1081.awsdns-07.org","ns-1617.awsdns-10.co.uk"]}],
     }
 
     const publicSubdomain = new PublicDomain(testStack, "PublicDomain", props);
@@ -41,9 +42,9 @@ describe("TestStack", () => {
       ValidationMethod: 'DNS'
     });
 
-    // template.hasResourceProperties("AWS::IAM::Role", {
-    //   RoleName: 'abc-useast1-tgedrcom-contributor'
-    // });
+    template.hasResourceProperties("AWS::Route53::RecordSet", {
+      ResourceRecords: [ 'ns-1081.awsdns-07.org', 'ns-1617.awsdns-10.co.uk' ]
+    });
 
 })
 })
