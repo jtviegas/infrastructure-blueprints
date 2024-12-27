@@ -13,7 +13,11 @@ describe("SpaSolutionScaffolding", () => {
       solution: "abc",
       env: { name: "dev", region: "eu-north-1", account: "123456", domain: {"name": "jtviegas.com"}},
       cloudfront_cidrs: ["1", "2"],
-      subdomain: "serious.site.com"
+      domain: {
+        name: "serious.site.com",
+        hostedZoneId: "123456",
+        certificateArn: "arn:aws:acm:us-east-1:123456:certificate/123456"
+      }
     };
 
     const testStack = new cdk.Stack(app, "TestStack", props);

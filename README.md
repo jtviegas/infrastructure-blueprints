@@ -416,7 +416,11 @@ export interface ISpaSolutionScaffolding {
 ```
 export interface SpaSolutionScaffoldingProps extends CommonStackProps {
   readonly cloudfront_cidrs: string[];
-  readonly subdomain: string;
+  readonly domain: {
+    readonly name: string;
+    readonly hostedZoneId: string;
+    readonly certificateArn: string;
+  },
   readonly apiUsagePlan?: {
     quota?: {
       limit: number,
@@ -463,11 +467,15 @@ class SpaStack extends Stack {
 
 // --- deploy the stack ---
 const spaProps: SpaSolutionScaffoldingProps = {
-  ...subdomainProps,
+  ...commonProps,
   cloudfront_cidrs: read_cidrs(path.join(__dirname, "../cloudfront_cidr.json")),
   env: environment,
   stackName: "SpaStack",
-  subdomain: subdomainProps.name
+  domain: {
+    name: "dev.domain.com",
+    certificateArn: "...",
+    hostedZoneId: "..."
+  }
 }
 const spaStack = new SpaStack(app, spaProps.stackName!, spaProps);
 ```

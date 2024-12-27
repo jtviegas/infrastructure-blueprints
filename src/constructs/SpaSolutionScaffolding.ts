@@ -11,7 +11,7 @@ import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, IHostedZone, PublicHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 
-import { SSMParameterReader, toParameter, toResourceName } from '../commons/utils';
+import { removeNonTextChars, SSMParameterReader, toParameter, toResourceName } from '../commons/utils';
 import { IBaseConstructs } from './base';
 import { DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
 import { CommonStackProps } from '../commons/props';
@@ -19,7 +19,11 @@ import { CommonStackProps } from '../commons/props';
 
 export interface SpaSolutionScaffoldingProps extends CommonStackProps {
   readonly cloudfront_cidrs: string[];
-  readonly subdomain: string;
+  readonly domain: {
+    readonly name: string;
+    readonly hostedZoneId: string;
+    readonly certificateArn: string;
+  },
   readonly apiUsagePlan?: {
     quota?: {
       limit: number,
@@ -45,20 +49,11 @@ export class SpaSolutionScaffolding extends Construct implements ISpaSolutionSca
   constructor(scope: Construct, id: string, baseConstructs: IBaseConstructs, props: SpaSolutionScaffoldingProps) {
     super(scope, id);
 
-    const certificateArn = new SSMParameterReader(this, `${id}ParamReaderCertArn`, {
-      parameterName: toParameter(props, props.subdomain, "certificateArn"),
-      region: DNS_GLOBAL_RESOURCES_REGION
-    }).getParameterValue();
-    const certificate = Certificate.fromCertificateArn(this, `${id}Certificate`, certificateArn);
-
-    const hostZoneId = new SSMParameterReader(this, `${id}ParamReaderHostedZoneId`, {
-      parameterName: toParameter(props, props.subdomain, "hostedZoneId"),
-      region: DNS_GLOBAL_RESOURCES_REGION
-    }).getParameterValue();
-    const hostedZone: IHostedZone = PublicHostedZone.fromHostedZoneAttributes(this, `${id}HostedZone`, {
-      hostedZoneId: hostZoneId,
-      zoneName: props.subdomain
+    const hostedZone: IHostedZone = PublicHostedZone.fromHostedZoneAttributes(this, `hostedZoneDomain`, {
+      hostedZoneId: props.domain.hostedZoneId,
+      zoneName: props.domain.name
     });
+    const certificate = Certificate.fromCertificateArn(this, `certificateDomain`, props.domain.certificateArn);
 
     // ------- spa bucket -------
     this.bucketSpa = new Bucket(this, `${id}BucketSpa`, {
@@ -156,7 +151,7 @@ export class SpaSolutionScaffolding extends Construct implements ISpaSolutionSca
     const distribution: Distribution = new Distribution(this, `${id}Distribution`, {
       defaultBehavior: { origin: s3SpaOrigin },
       certificate: certificate,
-      domainNames: [props.subdomain],
+      domainNames: [props.domain.name],
       additionalBehaviors: {
         '/api': {
           origin: ApiSpaOrigin,
@@ -172,8 +167,6 @@ export class SpaSolutionScaffolding extends Construct implements ISpaSolutionSca
       logIncludesCookies: true,
       logBucket: baseConstructs.logsBucket,
     });
-
-    
     const aRecordSubdomain = new ARecord(this, `${id}ARecordSubdomain`, {
       zone: hostedZone,
       target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
