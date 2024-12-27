@@ -11,10 +11,6 @@ export interface IPublicDomain {
 
 export interface PublicDomainProps extends CommonStackProps {
   readonly name: string;
-  readonly subdomains?: {
-    readonly name: string;
-    readonly nameservers: string[];
-  }[];
 }
 export class PublicDomain extends Construct implements IPublicDomain {
 
@@ -40,16 +36,6 @@ export class PublicDomain extends Construct implements IPublicDomain {
       certificateName: props.name,
       validation: CertificateValidation.fromDns(this.hostedZoneDomain)
     });
-    
-    if(props.subdomains){
-      for(const subdomain of props.subdomains){
-        new NsRecord(this, 'NSRecordSubDomainDelegation', {
-            zone: this.hostedZoneDomain,
-            recordName: subdomain.name,
-            values: subdomain.nameservers
-          });
-      }
-    }
 
   }
 }

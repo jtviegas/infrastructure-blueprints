@@ -23,9 +23,7 @@ describe("TestStack", () => {
     
     const props: PublicDomainProps = {
       ...baseProps,
-      name: "tgedr.com",
-      subdomains: [{ name: "test.tgedr.com", 
-        nameservers: ["ns-1081.awsdns-07.org","ns-1617.awsdns-10.co.uk"]}],
+      name: "tgedr.com"
     }
 
     const publicSubdomain = new PublicDomain(testStack, "PublicDomain", props);
@@ -40,10 +38,6 @@ describe("TestStack", () => {
     template.hasResourceProperties("AWS::CertificateManager::Certificate", {
       DomainName: '*.tgedr.com',
       ValidationMethod: 'DNS'
-    });
-
-    template.hasResourceProperties("AWS::Route53::RecordSet", {
-      ResourceRecords: [ 'ns-1081.awsdns-07.org', 'ns-1617.awsdns-10.co.uk' ]
     });
 
 })
