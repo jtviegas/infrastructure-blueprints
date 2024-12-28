@@ -1,17 +1,17 @@
 import { Template } from "aws-cdk-lib/assertions";
 import * as cdk from "aws-cdk-lib";
-import { BaseConstructs, AppGwDistributedServiceProps, AppGwDistributedService, SpaSolutionScaffoldingProps, SpaSolutionScaffolding } from "../../../src";
+import { BaseConstructs, AppGwDistributedServiceProps, AppGwDistributedService, SpaSolutionScaffoldingProps, SpaSolutionScaffolding, SpaWholeScaffoldingProps, SpaWholeScaffolding } from "../../../src";
 const util = require("util")
 
-describe("SpaSolutionScaffolding", () => {
+describe("SpaWholeScaffolding", () => {
   test("synthesizes the way we expect", () => {
 
     const app = new cdk.App();
-    const props: SpaSolutionScaffoldingProps = {
+    const props: SpaWholeScaffoldingProps = {
       organisation: "corp",
       department: "main",
       solution: "abc",
-      env: { name: "dev", region: "eu-north-1", account: "123456", domain: {"name": "jtviegas.com"}},
+      env: { name: "dev", region: "eu-north-1", account: "123456"},
       cloudfront_cidrs: ["1", "2"],
       domain: {
         name: "serious.site.com",
@@ -21,11 +21,14 @@ describe("SpaSolutionScaffolding", () => {
     };
 
     const testStack = new cdk.Stack(app, "TestStack", props);
-    const base = new BaseConstructs(testStack, "TestStack-baseconstructs", props);
-    const service = new SpaSolutionScaffolding(testStack, "TestStack-service", base, props);
+    const service = new SpaWholeScaffolding(testStack, "TestStack-service", props);
     const template = Template.fromStack(testStack);
 
     console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
+
+    template.hasResourceProperties("AWS::EC2::VPC", {
+      Tags: [ { Key: 'Name', Value: 'abc-eunorth1-base' } ]
+    });
 
     template.hasResourceProperties("AWS::S3::Bucket", {
       BucketName: 'abc-eunorth1-bucketspa'

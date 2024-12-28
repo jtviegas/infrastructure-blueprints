@@ -1,6 +1,5 @@
 
 
-
 export { PrefixListFinder, PrefixListFinderProps } from "./commons/prefixListFinder";
 
 export {
@@ -42,7 +41,9 @@ export {BaseConstructs, IBaseConstructs, BaseConstructsLookup} from "./construct
 export { DistributedService, DistributedServiceProps, IDistributedService } from "./constructs/distributedService"
 export { PublicSubdomain, IPublicSubdomain, PublicSubdomainProps } from "./constructs/publicSubdomain";
 export { SpaSolutionScaffolding, ISpaSolutionScaffolding, SpaSolutionScaffoldingProps } from "./constructs/SpaSolutionScaffolding";
-
 export { PublicDomain, IPublicDomain, PublicDomainProps } from "./constructs/publicDomain";
+
+export { SpaWholeScaffolding, ISpaWholeScaffolding, SpaWholeScaffoldingProps } from "./constructs/SpaWholeScaffolding";
+
 
 
