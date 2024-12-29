@@ -193,7 +193,7 @@ export function createCustomFunction(scope: Construct, id: string, base: IBaseCo
     runtime: Runtime.FROM_IMAGE,
     description: props.description,
     functionName: toResourceName(commonProps, "lambda", props.name),
-    memorySize: props.memorySize || 10240,
+    memorySize: props.memorySize || 3008,
     ephemeralStorageSize: props.ephemeralStorageSize || Size.gibibytes(8),
     timeout: props.timeout || Duration.seconds(900),
     environment: props.envVars,
