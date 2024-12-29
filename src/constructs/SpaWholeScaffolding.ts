@@ -58,8 +58,8 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
     // ------- spa bucket -------
     this.bucketSpa = new Bucket(this, `${id}BucketSpa`, {
       bucketName: toResourceName(props, "BucketSpa"),
-      removalPolicy: RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
+      removalPolicy: RemovalPolicy.RETAIN,
+      autoDeleteObjects: false,
       encryption: BucketEncryption.KMS,
       encryptionKey: this.key,
       enforceSSL: true,
