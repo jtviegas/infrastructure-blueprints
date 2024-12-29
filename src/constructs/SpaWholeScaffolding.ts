@@ -36,7 +36,7 @@ export interface SpaWholeScaffoldingProps extends CommonStackProps {
   }
 }
 
-export interface ISpaWholeScaffolding {
+export interface ISpaWholeScaffolding extends IBaseConstructs {
   readonly bucketSpa: IBucket;
   readonly resourceApi: IResource;
 }

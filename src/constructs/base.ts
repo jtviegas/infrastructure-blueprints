@@ -82,7 +82,7 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
     this.logsBucket = new Bucket(this, `${id}BaseConstructsLogsBucket`, {
       bucketName: deriveResourceName(props, "base", "logs"),
       versioned: false,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
       autoDeleteObjects: true,
       lifecycleRules: [
         {
