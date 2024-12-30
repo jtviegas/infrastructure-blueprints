@@ -480,6 +480,84 @@ const spaProps: SpaSolutionScaffoldingProps = {
 const spaStack = new SpaStack(app, spaProps.stackName!, spaProps);
 ```
 
+## SpaWholeScaffolding
+![SpaWholeScaffolding](assets/SpaSolutionScaffolding.png)
+
+### interface
+```
+export interface ISpaWholeScaffolding extends IBaseConstructs {
+  readonly bucketSpa: IBucket;
+  readonly resourceApi: IResource;
+}
+```
+### usage example
+
+```
+// --- define the stack ---
+
+interface TestStackProps extends SpaWholeScaffoldingProps {
+  readonly functions: { [key: string]: CustomCodeFunctionProps; };
+}
+
+class TestStack extends Stack {
+  readonly functions: { [key: string]: IFunction; } = {};
+  constructor(scope: Construct, id: string, props: TestStackProps) {
+    super(scope, id, props);
+
+    const spa = new SpaWholeScaffolding(this, "SpaWholeScaffolding", props);
+
+    for (const n in props.functions) {
+      let cf: CustomCodeFunctionProps = props.functions[n];
+      this.functions[cf.name] = createCustomFunction(this, id, spa, props, cf);
+    }
+
+    spa.resourceApi.addResource('hello').addMethod('GET',
+      new LambdaIntegration(this.functions["hello"], {
+        passthroughBehavior: PassthroughBehavior.WHEN_NO_MATCH,
+      }),
+      { apiKeyRequired: false },);
+
+  }
+}
+
+// --- deploy the stack ---
+
+const app = new cdk.App();
+const environment = (app.node.tryGetContext("environment"))[(process.env.ENVIRONMENT || 'dev')]
+
+const props: TestStackProps = {
+  organisation: process.env.ORGANISATION!,
+  department: process.env.DEPARTMENT!,
+  solution: process.env.SOLUTION!,
+  env: environment,
+  tags: {
+    organisation: process.env.ORGANISATION!,
+    department: process.env.DEPARTMENT!,
+    solution: process.env.SOLUTION!,
+    environment: environment.name,
+  },
+  stackName: process.env.STACK!,
+  cloudfront_cidrs: read_cidrs(path.join(__dirname, "../cloudfront_cidr.json")),
+  domain: {
+    hostedZoneId: process.env.DOMAIN_HZ_ID!,
+    name: process.env.DOMAIN_NAME!,
+    certificateArn: process.env.DOMAIN_CERT_ARN!
+  },
+  functions: {
+    "hello": {
+      name: "hello",
+      dirCode: path.join(__dirname, "../../resources/docker/hellosrv")
+    }
+  },
+}
+
+const spaStack = new TestStack(app, props.stackName!, props);
+```
+
+
+
+
+
 
 
 

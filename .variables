@@ -8,7 +8,7 @@ export CDK_VERSION="2.171.0"
 
 # aws
 export AWS_REGION="eu-north-1"
-export AWS_ACCESS_KEY_ID="AKIAQTMU5GI3U6FZ5SL7"
+export AWS_ACCESS_KEY_ID="AKIARHQBNFJOHQ5UHH52"
 
 # solution
 export ORGANISATION="tgedr"
@@ -21,6 +21,11 @@ export DNS_APP_DOMAIN="app.jtviegas.com"
 export STACK="${SOLUTION}-${ENVIRONMENT}"
 export STACK_SUBDOMAINS="${STACK}-subdomains"
 export STACK_SERVICE="${STACK}-service"
+
+export DOMAIN_NAME="dev.tgedr.com"
+export DOMAIN_HZ_ID=Z02649251S1WWVLLU7WZ9
+export DOMAIN_CERT_ARN="arn:aws:acm:us-east-1:084828564060:certificate/5ae9cb5f-84b9-417c-8f76-5a07be28f354"
+
 
 # outputs
 

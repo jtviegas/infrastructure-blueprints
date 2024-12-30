@@ -6,7 +6,7 @@ import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { RestApiOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { AllowedMethods, CachePolicy, Distribution, OriginRequestPolicy, S3OriginAccessControl, 
   Signing, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
-import { Cors, IResource, LogGroupLogDestination, MethodLoggingLevel, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { Cors, DomainName, IResource, LogGroupLogDestination, MethodLoggingLevel, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, IHostedZone, PublicHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
@@ -95,6 +95,7 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
       restApiName: toResourceName(props, "apigw"),
       defaultCorsPreflightOptions: { allowOrigins: Cors.ALL_ORIGINS },
       cloudWatchRole: true,
+
       deployOptions: {
         accessLogDestination: new LogGroupLogDestination(this.logGroup),
         cacheDataEncrypted: false,
@@ -138,7 +139,6 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
 
     this.resourceApi = restApi.root.addResource('api');
 
-
     // ------- cloudfront distribution  -------
 
     const s3SpaOriginAccessControl = new S3OriginAccessControl(this, `${id}S3SpaOAC`, {
@@ -146,14 +146,14 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
       signing: Signing.SIGV4_ALWAYS
     });
     const s3SpaOrigin = S3BucketOrigin.withOriginAccessControl(this.bucketSpa, s3SpaOriginAccessControl);
-    const ApiSpaOrigin = new RestApiOrigin(restApi);
+    const ApiSpaOrigin = new RestApiOrigin(restApi, {});
 
     const distribution: Distribution = new Distribution(this, `${id}Distribution`, {
       defaultBehavior: { origin: s3SpaOrigin },
       certificate: certificate,
       domainNames: [props.domain.name],
       additionalBehaviors: {
-        '/api': {
+        '/api/*': {
           origin: ApiSpaOrigin,
           viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
           cachePolicy: CachePolicy.CACHING_DISABLED,

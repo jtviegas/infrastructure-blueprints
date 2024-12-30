@@ -269,7 +269,6 @@ usage() {
   usage:
   $(basename $0) { option }
       options:
-
       - commands: lists handy commands we use all the time
       - set_aws_profile <profile> <key> <secret> <region> [output=json]
       - bashutils:  updates bashutils include file

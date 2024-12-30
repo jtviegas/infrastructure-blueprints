@@ -153,7 +153,7 @@ export class SpaSolutionScaffolding extends Construct implements ISpaSolutionSca
       certificate: certificate,
       domainNames: [props.domain.name],
       additionalBehaviors: {
-        '/api': {
+        '/api/*': {
           origin: ApiSpaOrigin,
           viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
           cachePolicy: CachePolicy.CACHING_DISABLED,

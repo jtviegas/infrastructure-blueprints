@@ -192,7 +192,7 @@ export class AppGwDistributedSpa extends Construct implements IAppGwDistributedS
       certificate: certificateDistribution === undefined ? undefined : certificateDistribution,
       domainNames: props.domain === undefined ? undefined : [props.domain],
       additionalBehaviors: {
-        '/api': {
+        '/api/*': {
           origin: ApiSpaOrigin,
           viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
           cachePolicy: CachePolicy.CACHING_DISABLED,

@@ -15,11 +15,7 @@ const props: StackUnderTestProps = {
   solution: "stackUnderTest-base",
   env: { "name": "dev",
         "region": "eu-north-1",
-        "account": "041651352119",
-        "domain": {
-          "name": "jtviegas.com",
-          "private": false
-        }
+        "account": "084828564060"
        },
   stackName: "StackUnderTest",
   prefixListName: "com.amazonaws.global.cloudfront.origin-facing"
