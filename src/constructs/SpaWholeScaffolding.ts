@@ -39,12 +39,14 @@ export interface SpaWholeScaffoldingProps extends CommonStackProps {
 export interface ISpaWholeScaffolding extends IBaseConstructs {
   readonly bucketSpa: IBucket;
   readonly resourceApi: IResource;
+  readonly distribution: Distribution;
 }
 
 export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaffolding {
 
   readonly bucketSpa: IBucket;
   readonly resourceApi: IResource;
+  readonly distribution: Distribution;
 
   constructor(scope: Construct, id: string, props: SpaWholeScaffoldingProps) {
     super(scope, id, props);
@@ -148,7 +150,7 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
     const s3SpaOrigin = S3BucketOrigin.withOriginAccessControl(this.bucketSpa, s3SpaOriginAccessControl);
     const ApiSpaOrigin = new RestApiOrigin(restApi, {});
 
-    const distribution: Distribution = new Distribution(this, `${id}Distribution`, {
+    this.distribution = new Distribution(this, `${id}Distribution`, {
       defaultBehavior: { origin: s3SpaOrigin },
       certificate: certificate,
       domainNames: [props.domain.name],
@@ -169,7 +171,7 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
     });
     const aRecordSubdomain = new ARecord(this, `${id}ARecordSubdomain`, {
       zone: hostedZone,
-      target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
+      target: RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),
     });
 
   }
