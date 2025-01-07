@@ -4,27 +4,28 @@ import { BaseConstructs, AppGwDistributedSpa } from "../../../src";
 const path = require("path")
 const util = require("util")
 
+const props = {
+  logsBucketOn: true,
+  organisation: "corp",
+  department: "main",
+  solution: "abc",
+  env: { name: "dev", region: "eu-north-1", account: "123456", domain: {name: "jtviegas.com", private: false} },
+  cloudfront_cidrs: ["10.0.0.0/24"],
+  domain: "justit.site.com",
+  lambdas: [{
+    name: "hello",
+    image: { dockerfileDir: path.join(__dirname, "../../resources/docker/hellosrv") },
+  }],
+  resources: [{methods: [{method: "GET", lambda: "hello"}]}],
+  keyAlias: "alias/abc-eunorth1-key",
+}
+
 describe("AppGwDistributedSpaStack", () => {
   test("synthesizes the way we expect", () => {
     const app = new cdk.App();
-    const testStack = new cdk.Stack(app, "TestStack");
-
-    const props = {
-      logsBucketOn: true,
-      organisation: "corp",
-      department: "main",
-      solution: "abc",
-      env: { name: "dev", region: "eu-north-1", account: "123456", domain: {name: "site.com", private: false} },
-      cloudfront_cidrs: ["10.0.0.0/24"],
-      domain: "justit.site.com",
-      lambdas: [{
-        name: "hello",
-        image: { dockerfileDir: path.join(__dirname, "../../resources/docker/hellosrv") },
-      }],
-      resources: [{methods: [{method: "GET", lambda: "hello"}]}]
-    }
-
+    const testStack = new cdk.Stack(app, "TestStack", props);
     const base = new BaseConstructs(testStack, "baseconstructs", props)
+
     const service = new AppGwDistributedSpa(testStack, "service", base, props);
     const template = Template.fromStack(testStack);
 

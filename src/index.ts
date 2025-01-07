@@ -37,7 +37,7 @@ export {
 
 export { AppGwDistributedService, AppGwDistributedServiceProps, IAppGwDistributedService } from "./constructs/appGwDistributedService"
 export { AppGwDistributedSpa, AppGwDistributedSpaProps, IAppGwDistributedSpa } from "./constructs/appGwDistributedSpa"
-export {BaseConstructs, IBaseConstructs, BaseConstructsLookup} from "./constructs/base"
+export {BaseConstructs, IBaseConstructs, BaseConstructsLookup, BaseConstructsProps} from "./constructs/base"
 export { DistributedService, DistributedServiceProps, IDistributedService } from "./constructs/distributedService"
 export { PublicSubdomain, IPublicSubdomain, PublicSubdomainProps } from "./constructs/publicSubdomain";
 export { SpaSolutionScaffolding, ISpaSolutionScaffolding, SpaSolutionScaffoldingProps } from "./constructs/SpaSolutionScaffolding";

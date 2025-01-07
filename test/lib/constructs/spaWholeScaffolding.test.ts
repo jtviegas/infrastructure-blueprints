@@ -24,7 +24,7 @@ describe("SpaWholeScaffolding", () => {
     const service = new SpaWholeScaffolding(testStack, "TestStack-service", props);
     const template = Template.fromStack(testStack);
 
-    console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
+    // console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
 
     template.hasResourceProperties("AWS::EC2::VPC", {
       Tags: [ { Key: 'Name', Value: 'abc-eunorth1-base' } ]

@@ -29,7 +29,7 @@ describe("TestStack", () => {
     const publicSubdomain = new PublicDomain(testStack, "PublicDomain", props);
     const template = Template.fromStack(testStack);
 
-    console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
+    // console.log(util.inspect(template.toJSON(), {showHidden: false, depth: null, colors: true}))
 
     template.hasResourceProperties("AWS::Route53::HostedZone", {
       Name: 'tgedr.com.'

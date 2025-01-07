@@ -1,6 +1,6 @@
 {
   "name": "@jtviegas/cdk-blueprints",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "library providing opinionated cdk constructs",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

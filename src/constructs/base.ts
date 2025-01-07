@@ -47,8 +47,12 @@ export interface IBaseConstructs {
   readonly vpc: IVpc;
 }
 
+export interface BaseConstructsProps extends CommonStackProps {
+  readonly keyAlias: string;
+}
+
 export interface BaseConstructsLookup {
-  readonly keyArn: string;
+  readonly keyAlias: string;
   readonly logGroupArn: string;
   readonly logsBucketArn: string;
   readonly roleArn: string;
@@ -57,19 +61,17 @@ export interface BaseConstructsLookup {
 
 export class BaseConstructs extends Construct implements IBaseConstructs {
 
-  readonly key: Key;
+  readonly key: IKey;
   readonly logGroup: LogGroup;
   readonly logsBucket: Bucket;
   readonly role: Role;
   readonly vpc: IVpc;
 
-  constructor(scope: Construct, id: string, props: CommonStackProps) {
+  constructor(scope: Construct, id: string, props: BaseConstructsProps) {
     super(scope, id);
 
     // --- kms key ---
-    this.key = new Key(this, `${id}BaseConstructsLogsKey`, {
-      enableKeyRotation: true,
-    });
+    this.key = Key.fromLookup(this, 'BaseConstructsLogsKey', {aliasName: props.keyAlias});
 
     // --- logGroup ---
     this.logGroup = new LogGroup(this, `${id}BaseConstructsLogGroup`,
@@ -156,7 +158,7 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
 
   public static fromProps(scope: Construct, id: string, lookup: BaseConstructsLookup): IBaseConstructs {
     return {
-      key: Key.fromKeyArn(scope, `${id}BaseConstructsKey`, lookup.keyArn),
+      key: Key.fromLookup(scope, 'BaseConstructsLogsKey', {aliasName: lookup.keyAlias,}),
       logGroup: LogGroup.fromLogGroupArn(scope, `${id}BaseConstructsLogGroup`, lookup.logGroupArn),
       logsBucket: Bucket.fromBucketArn(scope, `${id}BaseConstructsLogsBucket`, lookup.logsBucketArn),
       role: Role.fromRoleArn(scope, `${id}BaseConstructsRole`, lookup.roleArn),
