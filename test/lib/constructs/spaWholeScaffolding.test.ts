@@ -17,7 +17,8 @@ describe("SpaWholeScaffolding", () => {
         name: "serious.site.com",
         hostedZoneId: "123456",
         certificateArn: "arn:aws:acm:us-east-1:123456:certificate/123456"
-      }
+      },
+      keyAlias: "alias/CommonKey"
     };
 
     const testStack = new cdk.Stack(app, "TestStack", props);

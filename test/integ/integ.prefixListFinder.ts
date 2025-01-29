@@ -18,7 +18,7 @@ const props: StackUnderTestProps = {
         "account": "084828564060"
        },
   stackName: "StackUnderTest",
-  prefixListName: "com.amazonaws.global.cloudfront.origin-facing"
+  prefixListName: "com.amazonaws.global.cloudfront.origin-facing",
 };
 
 class StackUnderTest extends Stack {
