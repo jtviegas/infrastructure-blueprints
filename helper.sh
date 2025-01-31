@@ -337,6 +337,9 @@ case "$1" in
       off)
         cdk_infra off "$TEST_DEPLOY_INFRA_DIR" "$3"
         ;;
+      invalidate_distribution)
+        invalidate_distribution "$STACK" "$3"
+        ;;
       *)
         usage
         ;;
@@ -359,6 +362,7 @@ case "$1" in
       upload)
         spa_upload "$TEST_FRONTEND_DIR" "$STACK" "$OUTPUT_BUCKET_SPA" && invalidate_distribution "$STACK" "$OUTPUT_DISTRIBUTION_ID"
         ;;
+      
       *)
         usage
         ;;

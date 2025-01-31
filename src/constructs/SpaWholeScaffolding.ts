@@ -1,4 +1,4 @@
-import { RemovalPolicy } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods, IBucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { AnyPrincipal, Effect, PolicyDocument, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
@@ -11,7 +11,7 @@ import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, IHostedZone, PublicHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 
-import { removeNonTextChars, SSMParameterReader, toParameter, toResourceName } from '../commons/utils';
+import { removeNonTextChars, SSMParameterReader, toOutputKey, toParameter, toResourceName } from '../commons/utils';
 import { BaseConstructs, IBaseConstructs } from './base';
 import { DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
 import { CommonStackProps } from '../commons/props';
@@ -64,8 +64,8 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       // enforceSSL: true,
-      // encryption: BucketEncryption.KMS,
-      // encryptionKey: this.key,
+      encryption: BucketEncryption.KMS,
+      encryptionKey: this.key,
       blockPublicAccess: new BlockPublicAccess({
         blockPublicPolicy: false
       }),
@@ -178,6 +178,8 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
       logIncludesCookies: true,
       logBucket: this.logsBucket,
     });
+
+    new CfnOutput(this, `${id}OutputDistributionId`, { exportName: toOutputKey(props, "DistributionId"), value: this.distribution.distributionId });
 
     const aRecordSubdomain = new ARecord(this, `${id}ARecordSubdomain`, {
       zone: hostedZone,
