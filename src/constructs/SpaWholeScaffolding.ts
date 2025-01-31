@@ -1,19 +1,17 @@
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods, IBucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
-import { AnyPrincipal, Effect, PolicyDocument, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { BlockPublicAccess, Bucket, BucketEncryption, IBucket } from 'aws-cdk-lib/aws-s3';
+import { AnyPrincipal, Effect, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
-import { RestApiOrigin, S3BucketOrigin, S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { AccessLevel, AllowedMethods, CachePolicy, Distribution, OriginRequestPolicy, S3OriginAccessControl, 
-  Signing, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
-import { Cors, DomainName, IResource, LogGroupLogDestination, MethodLoggingLevel, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { RestApiOrigin, S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { AllowedMethods, CachePolicy, Distribution, OriginRequestPolicy, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { Cors, IResource, LogGroupLogDestination, MethodLoggingLevel, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, IHostedZone, PublicHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 
-import { removeNonTextChars, SSMParameterReader, toOutputKey, toParameter, toResourceName } from '../commons/utils';
+import { toOutputKey, toResourceName } from '../commons/utils';
 import { BaseConstructs, IBaseConstructs } from './base';
-import { DNS_GLOBAL_RESOURCES_REGION } from '../commons/constants';
 import { CommonStackProps } from '../commons/props';
 
 
@@ -63,30 +61,14 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
       bucketName: toResourceName(props, "BucketSpa"),
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
-      // enforceSSL: true,
       encryption: BucketEncryption.KMS,
       encryptionKey: this.key,
       blockPublicAccess: new BlockPublicAccess({
         blockPublicPolicy: false
       }),
-      publicReadAccess: false,
-      // cors: [
-      //   {
-      //     allowedMethods: [HttpMethods.GET],
-      //     allowedOrigins: ['*'],
-      //   }
-      // ],
+      publicReadAccess: true,
       websiteIndexDocument: "index.html",
     });
-
-    this.bucketSpa.addToResourcePolicy(
-      new PolicyStatement({
-        actions: ['s3:Get*', 's3:List*'],
-        effect: Effect.ALLOW,
-        resources: [this.bucketSpa.bucketArn, `${this.bucketSpa.bucketArn}/*`],
-        principals: [new AnyPrincipal()], 
-      }),
-    );
 
     // Deploy a dummy webpage, it will be overwritten afterwards
     new BucketDeployment(this, `${id}SpaDeployment`, {
@@ -145,17 +127,6 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
 
     // ------- cloudfront distribution  -------
 
-    const s3SpaOriginAccessControl = new S3OriginAccessControl(this, `${id}S3SpaOAC`, {
-      originAccessControlName: toResourceName(props, "S3SpaOAC"),
-      signing: Signing.SIGV4_ALWAYS
-    });
-    // const s3SpaOrigin = S3BucketOrigin.withOriginAccessControl(this.bucketSpa, {
-    //   originAccessLevels: [AccessLevel.READ, AccessLevel.LIST],
-    //   originAccessControl: s3SpaOriginAccessControl
-    // });
-    // const s3SpaOrigin = S3BucketOrigin.withOriginAccessControl(this.bucketSpa, {
-    //   originAccessControl: s3SpaOriginAccessControl
-    // });
     const s3SpaOrigin = new S3StaticWebsiteOrigin(this.bucketSpa);
     const ApiSpaOrigin = new RestApiOrigin(restApi, {});
 

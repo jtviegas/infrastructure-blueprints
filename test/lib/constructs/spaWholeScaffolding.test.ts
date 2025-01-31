@@ -53,15 +53,6 @@ describe("SpaWholeScaffolding", () => {
       UsagePlanName: 'abc-eunorth1-restapiusageplan'
     });
 
-    template.hasResourceProperties("AWS::CloudFront::OriginAccessControl", {
-      OriginAccessControlConfig: {
-        Name: 'abc-eunorth1-s3spaoac',
-        OriginAccessControlOriginType: 's3',
-        SigningBehavior: 'always',
-        SigningProtocol: 'sigv4'
-      }
-    });
-
     template.hasResourceProperties("AWS::CloudFront::Distribution", {
       DistributionConfig: {
         Aliases: [ 'serious.site.com' ]
