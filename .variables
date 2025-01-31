@@ -4,7 +4,7 @@ export NPM_REGISTRY=registry.npmjs.org
 
 # infrastructure
 export TYPESCRIPT_VERSION="~5.6.3"
-export CDK_VERSION="2.171.0"
+export CDK_VERSION="2.177.0"
 
 # aws
 export AWS_REGION="eu-north-1"
@@ -26,6 +26,7 @@ export DOMAIN_NAME="dev.tgedr.com"
 export DOMAIN_HZ_ID=Z02649251S1WWVLLU7WZ9
 export DOMAIN_CERT_ARN="arn:aws:acm:us-east-1:084828564060:certificate/5ae9cb5f-84b9-417c-8f76-5a07be28f354"
 
+export KEY_ALIAS="alias/CommonKey"
 
 # outputs
 

@@ -53,6 +53,7 @@ const props: TestStackProps = {
     environment: environment.name,
   },
   stackName: process.env.STACK!,
+  keyAlias: process.env.KEY_ALIAS!,
   cloudfront_cidrs: read_cidrs(path.join(__dirname, "../cloudfront_cidr.json")),
   domain: {
     hostedZoneId: process.env.DOMAIN_HZ_ID!,

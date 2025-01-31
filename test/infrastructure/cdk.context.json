@@ -135,5 +135,8 @@
     "eu-north-1a",
     "eu-north-1b",
     "eu-north-1c"
-  ]
+  ],
+  "key-provider:account=084828564060:aliasName=alias/CommonKey:region=eu-north-1": {
+    "keyId": "a20ef252-9d85-445c-9fd1-d3b65e95d123"
+  }
 }

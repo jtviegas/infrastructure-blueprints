@@ -1,10 +1,10 @@
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods, IBucket } from 'aws-cdk-lib/aws-s3';
-import { AnyPrincipal, Effect, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods, IBucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
+import { AnyPrincipal, Effect, PolicyDocument, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
-import { RestApiOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { AllowedMethods, CachePolicy, Distribution, OriginRequestPolicy, S3OriginAccessControl, 
+import { RestApiOrigin, S3BucketOrigin, S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { AccessLevel, AllowedMethods, CachePolicy, Distribution, OriginRequestPolicy, S3OriginAccessControl, 
   Signing, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { Cors, DomainName, IResource, LogGroupLogDestination, MethodLoggingLevel, Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
@@ -61,31 +61,32 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
     // ------- spa bucket -------
     this.bucketSpa = new Bucket(this, `${id}BucketSpa`, {
       bucketName: toResourceName(props, "BucketSpa"),
-      removalPolicy: RemovalPolicy.RETAIN,
-      autoDeleteObjects: false,
-      encryption: BucketEncryption.KMS,
-      encryptionKey: this.key,
-      enforceSSL: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      // enforceSSL: true,
+      // encryption: BucketEncryption.KMS,
+      // encryptionKey: this.key,
       blockPublicAccess: new BlockPublicAccess({
         blockPublicPolicy: false
       }),
-      publicReadAccess: true,
-      cors: [
-        {
-          allowedMethods: [HttpMethods.GET],
-          allowedOrigins: ['*'],
-        }
-      ]
+      publicReadAccess: false,
+      // cors: [
+      //   {
+      //     allowedMethods: [HttpMethods.GET],
+      //     allowedOrigins: ['*'],
+      //   }
+      // ],
+      websiteIndexDocument: "index.html",
     });
 
     this.bucketSpa.addToResourcePolicy(
       new PolicyStatement({
         actions: ['s3:Get*', 's3:List*'],
         effect: Effect.ALLOW,
-        resources: [this.bucketSpa.bucketArn],
-        principals: [new AnyPrincipal()]
+        resources: [this.bucketSpa.bucketArn, `${this.bucketSpa.bucketArn}/*`],
+        principals: [new AnyPrincipal()], 
       }),
-    )
+    );
 
     // Deploy a dummy webpage, it will be overwritten afterwards
     new BucketDeployment(this, `${id}SpaDeployment`, {
@@ -148,7 +149,14 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
       originAccessControlName: toResourceName(props, "S3SpaOAC"),
       signing: Signing.SIGV4_ALWAYS
     });
-    const s3SpaOrigin = S3BucketOrigin.withOriginAccessControl(this.bucketSpa, s3SpaOriginAccessControl);
+    // const s3SpaOrigin = S3BucketOrigin.withOriginAccessControl(this.bucketSpa, {
+    //   originAccessLevels: [AccessLevel.READ, AccessLevel.LIST],
+    //   originAccessControl: s3SpaOriginAccessControl
+    // });
+    // const s3SpaOrigin = S3BucketOrigin.withOriginAccessControl(this.bucketSpa, {
+    //   originAccessControl: s3SpaOriginAccessControl
+    // });
+    const s3SpaOrigin = new S3StaticWebsiteOrigin(this.bucketSpa);
     const ApiSpaOrigin = new RestApiOrigin(restApi, {});
 
     this.distribution = new Distribution(this, `${id}Distribution`, {
@@ -170,6 +178,7 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
       logIncludesCookies: true,
       logBucket: this.logsBucket,
     });
+
     const aRecordSubdomain = new ARecord(this, `${id}ARecordSubdomain`, {
       zone: hostedZone,
       target: RecordTarget.fromAlias(new CloudFrontTarget(this.distribution)),

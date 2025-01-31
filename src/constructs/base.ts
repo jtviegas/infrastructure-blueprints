@@ -84,8 +84,8 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
     this.logsBucket = new Bucket(this, `${id}BaseConstructsLogsBucket`, {
       bucketName: deriveResourceName(props, "base", "logs"),
       versioned: false,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-      autoDeleteObjects: false,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
       lifecycleRules: [
         {
           expiration: cdk.Duration.days(7),
@@ -100,6 +100,7 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
         new ServicePrincipal("ecs-tasks.amazonaws.com"),
         new ServicePrincipal("lambda.amazonaws.com"),
         new ServicePrincipal("apigateway.amazonaws.com"),
+        new ServicePrincipal("cloudfront.amazonaws.com"),
         new AccountPrincipal(props.env.account)
       ),
       roleName: deriveResourceName(props, "base"),
