@@ -61,8 +61,6 @@ export class SpaWholeScaffolding extends BaseConstructs implements ISpaWholeScaf
       bucketName: toResourceName(props, "BucketSpa"),
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
-      encryption: BucketEncryption.KMS,
-      encryptionKey: this.key,
       blockPublicAccess: new BlockPublicAccess({
         blockPublicPolicy: false
       }),
