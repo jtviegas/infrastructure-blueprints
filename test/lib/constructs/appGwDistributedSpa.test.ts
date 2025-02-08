@@ -18,6 +18,7 @@ const props = {
   }],
   resources: [{methods: [{method: "GET", lambda: "hello"}]}],
   keyAlias: "alias/abc-eunorth1-key",
+  withVpc: true
 }
 
 describe("AppGwDistributedSpaStack", () => {

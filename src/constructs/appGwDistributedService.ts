@@ -155,10 +155,10 @@ export class AppGwDistributedService extends Construct implements IAppGwDistribu
     });
 
     const serviceSecurityGroupApp = new SecurityGroup(this, `${id}-securityGroup`, {
-      vpc: baseConstructs.vpc,
+      vpc: baseConstructs.vpc!,
       securityGroupName: deriveResourceName(props, "sg", "srv"),
     });
-    serviceSecurityGroupApp.addIngressRule(Peer.ipv4(baseConstructs.vpc.vpcCidrBlock), 
+    serviceSecurityGroupApp.addIngressRule(Peer.ipv4(baseConstructs.vpc!.vpcCidrBlock), 
       Port.allTcp(), "allow all tcp ingress from private net")
 
     this.fargateService = new ApplicationLoadBalancedFargateService(this, `${id}-fargateService`, {
@@ -199,7 +199,7 @@ export class AppGwDistributedService extends Construct implements IAppGwDistribu
     
     //  the private network load balancer
     const nlbVpc = new NetworkLoadBalancer(this, `${id}-vpcNlb`, {
-       vpc: baseConstructs.vpc,
+       vpc: baseConstructs.vpc!,
     });
 
     // vpclink to the private network load balancer

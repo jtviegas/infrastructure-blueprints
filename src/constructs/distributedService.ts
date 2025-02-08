@@ -136,7 +136,7 @@ export class DistributedService extends Construct implements IDistributedService
     });
 
     const securityGroupApp = new SecurityGroup(this, `${id}-securityGroup`, {
-      vpc: baseConstructs.vpc,
+      vpc: baseConstructs.vpc!,
       securityGroupName: deriveResourceName(props, "sg", "srv"),
     });
     securityGroupApp.addIngressRule(Peer.prefixList(CLOUDFRONT_PREFIX_LIST), 

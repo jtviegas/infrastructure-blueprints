@@ -8,7 +8,8 @@ const props: BaseConstructsProps = {
   solution: "abc",
   env: { name: "dev", region: "eu-north-1", account: "123456" },
   stackName: "TestStack",
-  keyAlias: "alias/CommonKey"
+  keyAlias: "alias/CommonKey",
+  withVpc: true
 }
 
 describe("BaseConstructsStack", () => {

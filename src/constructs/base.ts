@@ -44,11 +44,12 @@ export interface IBaseConstructs {
   readonly logGroup: ILogGroup;
   readonly logsBucket: IBucket;
   readonly role: IRole;
-  readonly vpc: IVpc;
+  readonly vpc: IVpc|undefined;
 }
 
 export interface BaseConstructsProps extends CommonStackProps {
   readonly keyAlias: string;
+  readonly withVpc?: boolean;
 }
 
 export interface BaseConstructsLookup {
@@ -56,7 +57,7 @@ export interface BaseConstructsLookup {
   readonly logGroupArn: string;
   readonly logsBucketArn: string;
   readonly roleArn: string;
-  readonly vpcId: string;
+  readonly vpcId: string|undefined;
 }
 
 export class BaseConstructs extends Construct implements IBaseConstructs {
@@ -65,7 +66,7 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
   readonly logGroup: LogGroup;
   readonly logsBucket: Bucket;
   readonly role: Role;
-  readonly vpc: IVpc;
+  readonly vpc: Vpc|undefined;
 
   constructor(scope: Construct, id: string, props: BaseConstructsProps) {
     super(scope, id);
@@ -141,7 +142,7 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
 
     // --- vpc ---
 
-    this.vpc = new Vpc(this, `${id}BaseConstructsVpc`, {
+    this.vpc = ((props.withVpc !== undefined &&  props.withVpc === true) ? new Vpc(this, `${id}BaseConstructsVpc`, {
       vpcName: deriveResourceName(props, "base"),
       subnetConfiguration: [
         {
@@ -153,7 +154,7 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
           subnetType: SubnetType.PUBLIC,
         }
       ]
-    });
+    }) : undefined);
 
   }
 
@@ -163,7 +164,7 @@ export class BaseConstructs extends Construct implements IBaseConstructs {
       logGroup: LogGroup.fromLogGroupArn(scope, `${id}BaseConstructsLogGroup`, lookup.logGroupArn),
       logsBucket: Bucket.fromBucketArn(scope, `${id}BaseConstructsLogsBucket`, lookup.logsBucketArn),
       role: Role.fromRoleArn(scope, `${id}BaseConstructsRole`, lookup.roleArn),
-      vpc: Vpc.fromLookup(scope, `${id}BaseConstructsVpc`, {vpcId: lookup.vpcId})
+      vpc: lookup.vpcId ? Vpc.fromLookup(scope, `${id}BaseConstructsVpc`, {vpcId: lookup.vpcId}): undefined
     }
   }
 

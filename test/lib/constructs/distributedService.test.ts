@@ -7,11 +7,13 @@ describe("DistributedServiceStack", () => {
   test("synthesizes the way we expect", () => {
     const app = new cdk.App();
     
-    const baseProps: CommonStackProps = {
+    const baseProps = {
       organisation: "corp",
       department: "main",
       solution: "abc",
-      env: { name: "dev", region: "eu-north-1", account: "123456" }
+      env: { name: "dev", region: "eu-north-1", account: "123456" },
+      keyAlias: "alias/abc-eunorth1-key",
+      withVpc: true
     }
     const testStack = new cdk.Stack(app, "TestStack", baseProps);
     const base = new BaseConstructs(testStack, "TestStack-baseconstructs", baseProps)

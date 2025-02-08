@@ -9,8 +9,8 @@
       "Arn"
      ]
     },
-    "Create": "{\"service\":\"EC2\",\"action\":\"describeManagedPrefixLists\",\"parameters\":{\"Filters\":[{\"Name\":\"prefix-list-name\",\"Values\":[\"com.amazonaws.global.cloudfront.origin-facing\"]}]},\"physicalResourceId\":{\"id\":\"1736618724931\"},\"logApiResponseData\":true}",
-    "Update": "{\"service\":\"EC2\",\"action\":\"describeManagedPrefixLists\",\"parameters\":{\"Filters\":[{\"Name\":\"prefix-list-name\",\"Values\":[\"com.amazonaws.global.cloudfront.origin-facing\"]}]},\"physicalResourceId\":{\"id\":\"1736618724931\"},\"logApiResponseData\":true}",
+    "Create": "{\"service\":\"EC2\",\"action\":\"describeManagedPrefixLists\",\"parameters\":{\"Filters\":[{\"Name\":\"prefix-list-name\",\"Values\":[\"com.amazonaws.global.cloudfront.origin-facing\"]}]},\"physicalResourceId\":{\"id\":\"1739046729391\"},\"logApiResponseData\":true}",
+    "Update": "{\"service\":\"EC2\",\"action\":\"describeManagedPrefixLists\",\"parameters\":{\"Filters\":[{\"Name\":\"prefix-list-name\",\"Values\":[\"com.amazonaws.global.cloudfront.origin-facing\"]}]},\"physicalResourceId\":{\"id\":\"1739046729391\"},\"logApiResponseData\":true}",
     "InstallLatestAwsSdk": "false"
    },
    "DependsOn": [

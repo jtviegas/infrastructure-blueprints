@@ -18,7 +18,8 @@ describe("SpaWholeScaffolding", () => {
         hostedZoneId: "123456",
         certificateArn: "arn:aws:acm:us-east-1:123456:certificate/123456"
       },
-      keyAlias: "alias/CommonKey"
+      keyAlias: "alias/CommonKey",
+      withVpc: true
     };
 
     const testStack = new cdk.Stack(app, "TestStack", props);

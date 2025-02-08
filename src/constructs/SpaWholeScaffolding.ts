@@ -18,6 +18,7 @@ import { CommonStackProps } from '../commons/props';
 export interface SpaWholeScaffoldingProps extends CommonStackProps {
   readonly cloudfront_cidrs: string[];
   readonly keyAlias: string;
+  readonly withVpc: boolean;
   readonly domain: {
     readonly name: string;
     readonly hostedZoneId: string;
